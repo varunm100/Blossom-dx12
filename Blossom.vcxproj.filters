@@ -1,0 +1,458 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\AssetLibrary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\CommandList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\Context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\D3D12MemAlloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\Future.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\Queue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\RenderGraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\Resource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\Stager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="d\src\Pipeline.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="d\include\d\AssetLibrary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\CommandList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\D3D12MemAlloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Future.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\RenderGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Stager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Swapchain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\directx\d3d12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\directx\d3d12sdklayers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\directx\d3d12shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\directx\d3d12video.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\directx\d3dcommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\directx\d3dx12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\directx\dxgiformat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\dxcapi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\dxcapi.internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\dxcdxrfallbackcompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\dxcerrors.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\dxcisense.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\dxcpix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\dxctools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HlslIntrinsicOp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxcBindingTable\DxcBindingTable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DXIL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilCBuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilCompType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilConstants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilCounters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilEntryProps.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilFunctionProps.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilInstructions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilInterpolationMode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilMetadataHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilOperations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilPDB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilResource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilResourceBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilResourceBinding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilResourceProperties.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilSampler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilSemantic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilShaderFlags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilShaderModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilSignature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilSignatureElement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilSigPoint.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilSubobject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilTypeSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DXIL\DxilUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilContainer\DxcContainerBuilder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilContainer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilContainerAssembler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilContainerReader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilPipelineStateValidation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilRuntimeReflection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilPIXPasses\DxilPIXPasses.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilPIXPasses\DxilPIXVirtualRegisters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxilRootSignature\DxilRootSignature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\DxrFallback\DxrFallbackCompiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\ComputeViewIdState.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\ControlDependence.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilConvergentName.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilExportMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilFallbackLayerPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilGenerationPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilLinker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilNoops.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilPackSignatureElement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilSignatureAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilSpanAllocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\DxilValidation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLLowerUDT.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLMatrixLowerHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLMatrixLowerPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLMatrixType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLOperationLower.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLOperationLowerExtension.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLOperations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLResource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLSLExtensionsCodegenHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\HLSL\HLUtil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\d3d12TokenizedProgramFormat.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\d3dx12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\dxcapi.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\dxcapi.use.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\dxcfilesystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\DxcLangExtensionsCommonHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\DxcLangExtensionsHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\ErrorCodes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\exception.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\FileIOHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\Global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\HLSLOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\HLSLVersion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\microcom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\SPIRVOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\Unicode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\WinAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\WinFunctions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Support\WinIncludes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Test\CompilationResult.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Test\D3DReflectionDumper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Test\DumpContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Test\DxcTestUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Test\HLSLTestData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Test\HlslTestUtils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Test\RDATDumper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\dxc\Test\WEXAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\Pipeline.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\cgltf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tiny_obj_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="d\include\dxc\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="d\include\dxc\DxilContainer\DxilRuntimeReflection.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="d\include\dxc\DxilContainer\RDAT_LibraryTypes.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="d\include\dxc\DxilContainer\RDAT_Macros.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="d\include\dxc\DxilContainer\RDAT_SubobjectTypes.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="d\include\dxc\DXIL\DxilSigPoint.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="d\include\dxc\HLSL\DxilSignatureAllocator.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="d\include\dxc\HLSL\ViewIDPipelineValidation.inl">
+      <Filter>Header Files</Filter>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="d\include\directx\d3d12.idl">
+      <Filter>Source Files</Filter>
+    </Midl>
+    <Midl Include="d\include\directx\d3d12sdklayers.idl">
+      <Filter>Source Files</Filter>
+    </Midl>
+    <Midl Include="d\include\directx\d3dcommon.idl">
+      <Filter>Source Files</Filter>
+    </Midl>
+    <Midl Include="d\include\directx\dxgiformat.idl">
+      <Filter>Source Files</Filter>
+    </Midl>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\test.hlsl" />
+  </ItemGroup>
+</Project>

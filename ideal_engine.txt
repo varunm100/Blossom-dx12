@@ -1,0 +1,41 @@
+Renderer r = Renderer(..);
+Pipeline final_gather = Pipeline(..);
+Pipeline deferred = Pipeline(..);
+Pipeline cull = Pipeline(..);
+Pipeline shadow = Pipeline(..);
+
+const [out] = r.StartRendering();
+
+// returns futures
+const [vbo, vbo_fut] = r.CreateBuffer(verts, size);
+const [ibo, ibo_fut] = r.CreateBuffer(indices, size);
+
+// shadow map pass immediately scheduled on graphics queue
+const [shadow_map, shadow_future] = r.draw(RenderInfo {
+  .resources = [...]
+  .pl = shadow
+});
+
+// culling pass immediately scheduled on async compute after buffer uploads
+const [culled_vbo, culled_ibo, cull_future] = r.draw_on_futures([vbo_fut, ibo_fut], RenderInfo {
+  .resources = [vbo, ibo],
+  .pl = cull,
+  ...
+});
+
+// deferred pass scheduled to be done after culling, separate queue from shadow pass if general queue is busy
+const [albedo, normals, ..., depth, deferred_future] = r.draw_on_futures([cull_future], RenderInfo {
+  .resources = [resource_1, resource_2], // shader resources
+  .buffers = [culled_vbo, culled_ibo],
+  .draw_infos = [DrawIndirectInfo { .. draw_indirect params }],
+  .draw_params = [Params { } // push constant params for each draw call if draw_direct];
+  .pl = p,
+});
+
+// final pass scheduled after deferred and shadow passes
+const [color_out, color_out_future] = r.draw_on_futures([deferred_future, shadow_future], RenderInfo {...});
+
+r.copy_image_on_futures([color_out_future], color_out, out, ImageCopyInfo::FullSubresourceExtent);
+
+r.EndRendering();
+

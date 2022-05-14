@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="d\src\AssetLibrary.cpp" />
+    <ClCompile Include="d\src\CommandList.cpp" />
+    <ClCompile Include="d\src\Context.cpp" />
+    <ClCompile Include="d\src\D3D12MemAlloc.cpp" />
+    <ClCompile Include="d\src\Future.cpp" />
+    <ClCompile Include="d\src\Pipeline.cpp" />
+    <ClCompile Include="d\src\Queue.cpp" />
+    <ClCompile Include="d\src\RenderGraph.cpp" />
+    <ClCompile Include="d\src\Resource.cpp" />
+    <ClCompile Include="d\src\Stager.cpp" />
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="d\include\dxc\DxilContainer\DxilRuntimeReflection.inl" />
+    <None Include="d\include\dxc\DxilContainer\RDAT_LibraryTypes.inl" />
+    <None Include="d\include\dxc\DxilContainer\RDAT_Macros.inl" />
+    <None Include="d\include\dxc\DxilContainer\RDAT_SubobjectTypes.inl" />
+    <None Include="d\include\dxc\DXIL\DxilSigPoint.inl" />
+    <None Include="d\include\dxc\HLSL\DxilSignatureAllocator.inl" />
+    <None Include="d\include\dxc\HLSL\ViewIDPipelineValidation.inl" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="d\include\directx\d3d12.h" />
+    <ClInclude Include="d\include\directx\d3d12sdklayers.h" />
+    <ClInclude Include="d\include\directx\d3d12shader.h" />
+    <ClInclude Include="d\include\directx\d3d12video.h" />
+    <ClInclude Include="d\include\directx\d3dcommon.h" />
+    <ClInclude Include="d\include\directx\d3dx12.h" />
+    <ClInclude Include="d\include\directx\dxgiformat.h" />
+    <ClInclude Include="d\include\dxc\dxcapi.h" />
+    <ClInclude Include="d\include\dxc\dxcapi.internal.h" />
+    <ClInclude Include="d\include\dxc\DxcBindingTable\DxcBindingTable.h" />
+    <ClInclude Include="d\include\dxc\dxcdxrfallbackcompiler.h" />
+    <ClInclude Include="d\include\dxc\dxcerrors.h" />
+    <ClInclude Include="d\include\dxc\dxcisense.h" />
+    <ClInclude Include="d\include\dxc\dxcpix.h" />
+    <ClInclude Include="d\include\dxc\dxctools.h" />
+    <ClInclude Include="d\include\dxc\DxilContainer\DxcContainerBuilder.h" />
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilContainer.h" />
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilContainerAssembler.h" />
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilContainerReader.h" />
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilPipelineStateValidation.h" />
+    <ClInclude Include="d\include\dxc\DxilContainer\DxilRuntimeReflection.h" />
+    <ClInclude Include="d\include\dxc\DxilPIXPasses\DxilPIXPasses.h" />
+    <ClInclude Include="d\include\dxc\DxilPIXPasses\DxilPIXVirtualRegisters.h" />
+    <ClInclude Include="d\include\dxc\DxilRootSignature\DxilRootSignature.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DXIL.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilCBuffer.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilCompType.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilConstants.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilCounters.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilEntryProps.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilFunctionProps.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilInstructions.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilInterpolationMode.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilMetadataHelper.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilModule.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilOperations.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilPDB.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilResource.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilResourceBase.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilResourceBinding.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilResourceProperties.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilSampler.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilSemantic.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilShaderFlags.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilShaderModel.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilSignature.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilSignatureElement.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilSigPoint.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilSubobject.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilTypeSystem.h" />
+    <ClInclude Include="d\include\dxc\DXIL\DxilUtil.h" />
+    <ClInclude Include="d\include\dxc\DxrFallback\DxrFallbackCompiler.h" />
+    <ClInclude Include="d\include\dxc\HlslIntrinsicOp.h" />
+    <ClInclude Include="d\include\dxc\HLSL\ComputeViewIdState.h" />
+    <ClInclude Include="d\include\dxc\HLSL\ControlDependence.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilConvergentName.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilExportMap.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilFallbackLayerPass.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilGenerationPass.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilLinker.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilNoops.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilPackSignatureElement.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilSignatureAllocator.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilSpanAllocator.h" />
+    <ClInclude Include="d\include\dxc\HLSL\DxilValidation.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLLowerUDT.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLMatrixLowerHelper.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLMatrixLowerPass.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLMatrixType.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLModule.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLOperationLower.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLOperationLowerExtension.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLOperations.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLResource.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLSLExtensionsCodegenHelper.h" />
+    <ClInclude Include="d\include\dxc\HLSL\HLUtil.h" />
+    <ClInclude Include="d\include\dxc\Support\d3d12TokenizedProgramFormat.hpp" />
+    <ClInclude Include="d\include\dxc\Support\d3dx12.h" />
+    <ClInclude Include="d\include\dxc\Support\dxcapi.impl.h" />
+    <ClInclude Include="d\include\dxc\Support\dxcapi.use.h" />
+    <ClInclude Include="d\include\dxc\Support\dxcfilesystem.h" />
+    <ClInclude Include="d\include\dxc\Support\DxcLangExtensionsCommonHelper.h" />
+    <ClInclude Include="d\include\dxc\Support\DxcLangExtensionsHelper.h" />
+    <ClInclude Include="d\include\dxc\Support\ErrorCodes.h" />
+    <ClInclude Include="d\include\dxc\Support\exception.h" />
+    <ClInclude Include="d\include\dxc\Support\FileIOHelper.h" />
+    <ClInclude Include="d\include\dxc\Support\Global.h" />
+    <ClInclude Include="d\include\dxc\Support\HLSLOptions.h" />
+    <ClInclude Include="d\include\dxc\Support\HLSLVersion.h" />
+    <ClInclude Include="d\include\dxc\Support\microcom.h" />
+    <ClInclude Include="d\include\dxc\Support\SPIRVOptions.h" />
+    <ClInclude Include="d\include\dxc\Support\Unicode.h" />
+    <ClInclude Include="d\include\dxc\Support\WinAdapter.h" />
+    <ClInclude Include="d\include\dxc\Support\WinFunctions.h" />
+    <ClInclude Include="d\include\dxc\Support\WinIncludes.h" />
+    <ClInclude Include="d\include\dxc\Test\CompilationResult.h" />
+    <ClInclude Include="d\include\dxc\Test\D3DReflectionDumper.h" />
+    <ClInclude Include="d\include\dxc\Test\DumpContext.h" />
+    <ClInclude Include="d\include\dxc\Test\DxcTestUtils.h" />
+    <ClInclude Include="d\include\dxc\Test\HLSLTestData.h" />
+    <ClInclude Include="d\include\dxc\Test\HlslTestUtils.h" />
+    <ClInclude Include="d\include\dxc\Test\RDATDumper.h" />
+    <ClInclude Include="d\include\dxc\Test\WEXAdapter.h" />
+    <ClInclude Include="d\include\d\AssetLibrary.h" />
+    <ClInclude Include="d\include\d\CommandList.h" />
+    <ClInclude Include="d\include\d\Context.h" />
+    <ClInclude Include="d\include\d\D3D12MemAlloc.h" />
+    <ClInclude Include="d\include\d\Future.h" />
+    <ClInclude Include="d\include\d\Hash.h" />
+    <ClInclude Include="d\include\d\Logging.h" />
+    <ClInclude Include="d\include\d\Pipeline.h" />
+    <ClInclude Include="d\include\d\Queue.h" />
+    <ClInclude Include="d\include\d\RenderGraph.h" />
+    <ClInclude Include="d\include\d\Resource.h" />
+    <ClInclude Include="d\include\d\Stager.h" />
+    <ClInclude Include="d\include\d\stdafx.h" />
+    <ClInclude Include="d\include\d\Swapchain.h" />
+    <ClInclude Include="d\include\d\Types.h" />
+    <ClInclude Include="include\cgltf.h" />
+    <ClInclude Include="include\tiny_obj_loader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="d\include\dxc\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="d\include\directx\d3d12.idl" />
+    <Midl Include="d\include\directx\d3d12sdklayers.idl" />
+    <Midl Include="d\include\directx\d3dcommon.idl" />
+    <Midl Include="d\include\directx\dxgiformat.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="shaders\test.hlsl">
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">6.5</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">6.5</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.5</ShaderModel>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">6.5</ShaderModel>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">-T ms_6_6</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">-T ms_6_6</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">-T ms_6_6</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-T ms_6_6</AdditionalOptions>
+    </FxCompile>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{d71eecf8-06ae-49e5-9694-3b3f39e99785}</ProjectGuid>
+    <RootNamespace>Blossom</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>$(ProjectDir)d\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(ProjectDir)d\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <LibraryPath>$(ProjectDir)d\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(ProjectDir)d\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)d\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>dxcompiler.lib;d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <FxCompile>
+      <ShaderModel>6.5</ShaderModel>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)d\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>dxcompiler.lib;d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <FxCompile>
+      <ShaderModel>6.5</ShaderModel>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)d\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>dxcompiler.lib;d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <FxCompile>
+      <ShaderModel>6.5</ShaderModel>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)d\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>dxcompiler.lib;d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <FxCompile>
+      <ShaderModel>6.5</ShaderModel>
+    </FxCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\glfw.3.3.7\build\native\glfw.targets" Condition="Exists('packages\glfw.3.3.7\build\native\glfw.targets')" />
+    <Import Project="packages\glm.0.9.9.800\build\native\glm.targets" Condition="Exists('packages\glm.0.9.9.800\build\native\glm.targets')" />
+    <Import Project="packages\spdlog_native.2021.07.30\build\native\spdlog_native.targets" Condition="Exists('packages\spdlog_native.2021.07.30\build\native\spdlog_native.targets')" />
+    <Import Project="packages\directxtex_desktop_2019.2022.5.10.1\build\native\directxtex_desktop_2019.targets" Condition="Exists('packages\directxtex_desktop_2019.2022.5.10.1\build\native\directxtex_desktop_2019.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\glfw.3.3.7\build\native\glfw.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glfw.3.3.7\build\native\glfw.targets'))" />
+    <Error Condition="!Exists('packages\glm.0.9.9.800\build\native\glm.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glm.0.9.9.800\build\native\glm.targets'))" />
+    <Error Condition="!Exists('packages\spdlog_native.2021.07.30\build\native\spdlog_native.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\spdlog_native.2021.07.30\build\native\spdlog_native.targets'))" />
+    <Error Condition="!Exists('packages\directxtex_desktop_2019.2022.5.10.1\build\native\directxtex_desktop_2019.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\directxtex_desktop_2019.2022.5.10.1\build\native\directxtex_desktop_2019.targets'))" />
+  </Target>
+</Project>
