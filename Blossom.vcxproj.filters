@@ -437,6 +437,7 @@
       <Filter>Header Files</Filter>
     </None>
     <None Include="packages.config" />
+    <None Include="shaders\test.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="d\include\directx\d3d12.idl">
@@ -451,8 +452,5 @@
     <Midl Include="d\include\directx\dxgiformat.idl">
       <Filter>Source Files</Filter>
     </Midl>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="shaders\test.hlsl" />
   </ItemGroup>
 </Project>

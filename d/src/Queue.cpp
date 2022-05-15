@@ -25,11 +25,11 @@ namespace d {
 
   auto Queue::submit_lists(std::initializer_list<CommandList> lists) -> void {
     std::vector<ID3D12CommandList*> _lists(lists.size());
-    std::transform(lists.begin(), lists.end(), _lists.begin(), [](const CommandList& l) { return l.handle.Get(); });
+    std::ranges::transform(lists, _lists.begin(), [](const CommandList& l) { return l.handle.Get(); });
 
     ++fence_val;
     assert(idle_event && "Queue::submit_lists: could not could create event handle");
-    handle->ExecuteCommandLists(lists.size(), _lists.data());
+    handle->ExecuteCommandLists(static_cast<u32>(lists.size()), _lists.data());
     DX_CHECK(handle->Signal(idle_fence.Get(), fence_val));
     DX_CHECK(idle_fence->SetEventOnCompletion(fence_val, idle_event));
   }
