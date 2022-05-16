@@ -28,6 +28,8 @@ namespace d {
       handle->SetGraphicsRootSignature(render_info.pl.root_signature.Get());
       //constexpr float clear_color[] = { 1.0f, .0f, .0f, 1.0f };
       //c.main_command_list->ClearRenderTargetView(out_handle, clear_color, 0, nullptr);
+      handle->SetGraphicsRoot32BitConstants(0, static_cast<UINT>(draw_info.push_constants.size() / 4),
+                                            draw_info.push_constants.data(), draw_info.constant_offset.value_or(0));
       handle->DrawInstanced(draw_info.index_count, 1, 0, 0);
     }
     return *this;

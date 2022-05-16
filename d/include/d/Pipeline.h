@@ -1,6 +1,9 @@
 #pragma once
 
+#include <optional>
+
 #include "d/stdafx.h"
+#include "d/Types.h"
 
 namespace d {
   struct Pipeline;
@@ -10,11 +13,11 @@ namespace d {
 
     auto default_raster() -> PipelineStream &;
 
-    auto set_vertex_shader(const char *vs) -> PipelineStream &;
+    auto set_vertex_shader(const char *label) -> PipelineStream &;
 
-    auto set_fragment_shader(const char *fs) -> PipelineStream &;
+    auto set_fragment_shader(const char *label) -> PipelineStream &;
 
-    auto build() -> Pipeline;
+    auto build(bool include_root_constants, std::optional<u32> num_constants) -> Pipeline;
   };
 
   struct Pipeline {

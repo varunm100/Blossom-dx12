@@ -40,10 +40,21 @@ namespace d {
     return *this;
   }
 
-  auto PipelineStream::build() -> Pipeline {
+  auto PipelineStream::build(bool include_root_constants, std::optional<u32> num_constants) -> Pipeline {
     Pipeline pl{};
     auto root_sign_desc = CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC{};
-    root_sign_desc.Init_1_1(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED |
+    const auto param = D3D12_ROOT_PARAMETER1{
+        .ParameterType = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS,
+        .Constants =
+            D3D12_ROOT_CONSTANTS{
+                .ShaderRegister = 0,
+                .RegisterSpace = 0,
+                .Num32BitValues = num_constants.value_or(0),
+            },
+        .ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL,
+    };
+    const D3D12_ROOT_PARAMETER1 params[1]{param};
+    root_sign_desc.Init_1_1(include_root_constants ? 1 : 0, include_root_constants ? params : nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED |
                                                     D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED);
     DX_CHECK(D3DX12SerializeVersionedRootSignature(&root_sign_desc,
                                                    D3D_ROOT_SIGNATURE_VERSION_1_1, &pl.rootSignatureBlob,

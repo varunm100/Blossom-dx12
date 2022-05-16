@@ -16,6 +16,11 @@
 extern "C" { __declspec(dllexport) extern const UINT D3D12SDKVersion = 700; }
 extern "C" { __declspec(dllexport) extern const char *D3D12SDKPath = "../../agility_sdk/"; }
 
+  struct Constants
+  {
+    float color[3];
+  };
+
 int main() {
   glfwInit();
 
@@ -64,21 +69,30 @@ int main() {
   d::c.library.add_shader("shaders/test.hlsl", d::ShaderType::VERTEX, "test_vs");
   d::c.library.add_shader("shaders/test.hlsl", d::ShaderType::FRAGMENT, "test_fs");
 
-
-  u32 vbo_index = vbo.read_view(true, 0, 18, 0).desc_index();
+  struct Constants {
+    u32 vbo_index;
+    float color1[3];
+    float color2[3];
+  };
 
   d::Pipeline pl = d::PipelineStream()
                       .default_raster()
                       .set_vertex_shader("test_vs")
                       .set_fragment_shader("test_fs")
-                      .build();
+                      .build(true, sizeof(Constants)/sizeof(u32));
 
   while (!glfwWindowShouldClose(window)) {
     // handle input
     const auto[out_handle, cl] = d::c.BeginRendering();
     cl.draw_directs(d::DrawDirectsInfo{
       .output = out_handle,
-      .draw_infos = {d::DirectDrawInfo{.index_count = 6}},
+      .draw_infos = {d::DirectDrawInfo{.index_count = 6,
+        .push_constants = ByteSpan(Constants {
+            .vbo_index = vbo.read_view(true, 0, 18, 0).desc_index(),
+            .color1 = { 0., 1., 0.},
+            .color2 = { 1., 0., 0.},
+        }),
+      }},
       .pl = pl,
     });
     d::c.EndRendering();

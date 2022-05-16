@@ -3,12 +3,15 @@
 #include "d/stdafx.h"
 #include "d/Resource.h"
 #include "d/Pipeline.h"
+#include "d/Types.h"
 
 namespace d {
 
   struct DirectDrawInfo {
     u32 index_count;
     u32 start_index;
+    ByteSpan push_constants;
+    std::optional<u32> constant_offset{0};
   };
 
   struct DrawDirectsInfo {
