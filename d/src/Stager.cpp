@@ -12,11 +12,11 @@ Stager::Stager(u32 _max_buffer_size) : max_buffer_size(_max_buffer_size) {
       .size = max_buffer_size,
       .usage = MemoryUsage::Mappable,
   });
-  auto list = async_transfer.get_command_list();
+  list = async_transfer.get_command_list();
 }
 
 void Stager::stage_buffer(Resource<Buffer> dst, ByteSpan data) {
-  stage_entries.push_back(StageEntry{
+  stage_entries.emplace_back(StageEntry{
       .data = data,
       .buffer = dst,
   });
@@ -31,5 +31,6 @@ void Stager::stage_block_until_over() {
     async_transfer.submit_lists({list});
     async_transfer.block_until_idle();
   }
+  stage_entries.clear();
 }
 } // namespace d

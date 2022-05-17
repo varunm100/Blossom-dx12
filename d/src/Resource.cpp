@@ -353,10 +353,10 @@ TextureViewInfo::get_native_view() const {
 
 auto Resource<Buffer>::map_and_copy(ByteSpan data, usize offset) const -> void {
   void *mapped;
-  DX_CHECK(
-      d::get_native_res(static_cast<u32>(handle))->Map(0, nullptr, &mapped));
-  memcpy(static_cast<char*>(mapped) + offset, reinterpret_cast<void*>(data.data()), data.size());
-  d::get_native_res(static_cast<u32>(handle))->Unmap(0, nullptr);
+  auto res = d::get_native_res(static_cast<u32>(handle));
+  DX_CHECK(res->Map(0, nullptr, &mapped));
+  memcpy(static_cast<char*>(mapped) + offset, data.data(), data.size());
+  res->Unmap(0, nullptr);
 }
 
 [[nodiscard]] auto Resource<Buffer>::ibo_view(std::optional<u32> index_offset,

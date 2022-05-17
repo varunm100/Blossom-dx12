@@ -8,7 +8,7 @@ namespace d {
       .SampleMask = 0xffffffff,
       .RasterizerState =  D3D12_RASTERIZER_DESC{
         .FillMode = D3D12_FILL_MODE_SOLID,
-        .CullMode = D3D12_CULL_MODE_NONE,
+        .CullMode = D3D12_CULL_MODE_BACK,
         .FrontCounterClockwise = true,
         .ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF,
       },

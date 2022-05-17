@@ -99,7 +99,6 @@ template <ResourceC T>
 struct Resource {
   T handle;
 
-
   Resource() = default;
   Resource(u32 _handle) : handle(static_cast<T>(_handle)) {}
 
