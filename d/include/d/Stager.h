@@ -1,17 +1,25 @@
 #pragma once
 
-#include "d/Context.h"
+#include "d/CommandList.h"
+#include "d/Queue.h"
+#include "d/Resource.h"
 namespace d {
+  struct StageEntry {
+  ByteSpan data;
+  Resource<Buffer> buffer;
+  };
   struct Stager {
-    ComPtr<ID3D12CommandQueue> transfer_queue;
-    ComPtr<ID3D12CommandList> transfer_list;
+    Resource<Buffer> stage;
+    std::vector<StageEntry> stage_entries;
+    Queue async_transfer;
+    CommandList list;
+    u32 max_buffer_size;
 
-    Stager();
+    Stager(u32 _max_buffer_size);
     ~Stager() = default;
 
-    void open_stage();
-    void stage_buffer();
-    void end_stage();
+    void stage_buffer(Resource<Buffer> dst, ByteSpan data);
+    void stage_block_until_over();
   };
 
 }

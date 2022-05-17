@@ -86,9 +86,6 @@
     <ClInclude Include="d\include\d\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="d\include\d\Swapchain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="d\include\d\Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>

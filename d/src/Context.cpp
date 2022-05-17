@@ -91,36 +91,27 @@ void Context::init(GLFWwindow *window, u32 sc_count) {
                                            nullptr, &swap_chain.swapchain));
   DX_CHECK(factory->MakeWindowAssociation(win_handle, DXGI_MWA_NO_ALT_ENTER));
 
-  UINT rtvDescriptorSize =
-      device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-  D3D12_DESCRIPTOR_HEAP_DESC desc = {
-      .Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
-      .NumDescriptors = sc_count,
-  };
-
-  DX_CHECK(device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&desc_heap_rtv)));
-  CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(
-      desc_heap_rtv->GetCPUDescriptorHandleForHeapStart());
-
-  swap_chain.image_buffers.reserve(sc_count);
-  for (u32 i = 0; i < sc_count; ++i) {
-    ComPtr<ID3D12Resource> backBuffer;
-    DX_CHECK(swap_chain.swapchain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
-
-    device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
-
-    // swap_chain.image_buffers[i] = backBuffer;
-    swap_chain.image_buffers.push_back(backBuffer);
-
-    rtvHandle.Offset(rtvDescriptorSize);
-  }
-
   general_q.init(QueueType::GENERAL);
   async_transfer_q.init(QueueType::ASYNC_TRANSFER);
   async_compute_q.init(QueueType::ASYNC_COMPUTE);
 
   library.init();
+
+  c.res_lib.storage.init(100);
+
+  swap_chain.images.reserve(sc_count);
+  for (u32 i = 0; i < sc_count; ++i) {
+    ComPtr<ID3D12Resource> image;
+    ComPtr<D3D12MA::Allocation> empty_allocation;
+    
+    DX_CHECK(swap_chain.swapchain->GetBuffer(i, IID_PPV_ARGS(&image)));
+    auto res = Resource<D2>(RegisterResource(image, empty_allocation));
+    swap_chain.images.push_back(res);
+
+    // initialize cache
+    auto image_view_handle = swap_chain.images[i].rtv_view({})
+  																																		 .desc_handle();
+  }
 
   //D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 = {};
   //DX_CHECK(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12,
@@ -131,6 +122,7 @@ void Context::init(GLFWwindow *window, u32 sc_count) {
   //} else {
   //  spdlog::info("Enhanced Barriers supported :)");
   //}
+
 }
 
 [[nodiscard]] std::pair<D3D12_CPU_DESCRIPTOR_HANDLE, CommandList &>
@@ -157,17 +149,14 @@ Context::BeginRendering() {
   const u32 &image_index = swap_chain.image_index;
 
   // create barrier and get render target handle
-  D3D12_RESOURCE_BARRIER rd_barrier;
-  rd_barrier = get_transition(swap_chain.image_buffers[image_index].Get(),
-                              D3D12_RESOURCE_STATE_PRESENT,
+  const D3D12_RESOURCE_BARRIER rd_barrier = get_transition(get_native_res(swap_chain.images[image_index]),
+                              get_res_state(swap_chain.images[image_index]).state,
                               D3D12_RESOURCE_STATE_RENDER_TARGET);
+  get_res_state(swap_chain.images[image_index]).state =
+      D3D12_RESOURCE_STATE_RENDER_TARGET;
   main_command_list.handle->ResourceBarrier(1, &rd_barrier);
 
-  D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle =
-      desc_heap_rtv->GetCPUDescriptorHandleForHeapStart();
-  rtv_handle.ptr += image_index * device->GetDescriptorHandleIncrementSize(
-                                      D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-  return std::make_pair(rtv_handle, std::ref(main_command_list));
+  return std::make_pair(swap_chain.images[image_index].rtv_view({}).desc_handle(), std::ref(main_command_list));
 }
 
 D3D12_RESOURCE_BARRIER Context::get_transition(
@@ -186,16 +175,18 @@ D3D12_RESOURCE_BARRIER Context::get_transition(
 void Context::EndRendering() {
   u32 &image_index = swap_chain.image_index;
 
-  auto rd_barrier = get_transition(swap_chain.image_buffers[image_index].Get(),
-                                   D3D12_RESOURCE_STATE_RENDER_TARGET,
-                                   D3D12_RESOURCE_STATE_PRESENT);
+  const auto rd_barrier = get_transition(get_native_res(swap_chain.images[image_index]),
+                                         get_res_state(swap_chain.images[image_index]).state,
+                                         D3D12_RESOURCE_STATE_PRESENT);
+  get_res_state(swap_chain.images[image_index]).state =
+      D3D12_RESOURCE_STATE_PRESENT;
   main_command_list.handle->ResourceBarrier(1, &rd_barrier);
 
   main_command_list.finish();
   general_queue.submit_lists({main_command_list});
 
   DX_CHECK(swap_chain.swapchain->Present(0, 0));
-  image_index = (image_index + 1u) % swap_chain.image_buffers.size();
+  image_index = (image_index + 1u) % swap_chain.images.size();
 
   // FLUSH COMMAND QUEUE TODO: have in_flight images
   general_queue.block_until_idle();
@@ -204,7 +195,6 @@ void Context::EndRendering() {
 void InitContext(GLFWwindow *window, u32 sc_count) {
   c = d::Context();
   c.init(window, 3);
-  c.res_lib.storage.init(100);
 }
 
 void DescriptorStorage::init(const u32 num_desc) {
@@ -214,7 +204,7 @@ void DescriptorStorage::init(const u32 num_desc) {
 }
 
 void DescHeap::init(D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_desc) {
-  D3D12_DESCRIPTOR_HEAP_DESC desc_cbv_srv_uav = {
+  const D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {
       .Type = type,
       .NumDescriptors = num_desc,
       .Flags = type == D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
@@ -223,7 +213,7 @@ void DescHeap::init(D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_desc) {
   };
 
   DX_CHECK(
-      c.device->CreateDescriptorHeap(&desc_cbv_srv_uav, IID_PPV_ARGS(&heap)));
+      c.device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&heap)));
   start = heap->GetCPUDescriptorHandleForHeapStart();
   end = start;
   stride = c.device->GetDescriptorHandleIncrementSize(type);
@@ -291,29 +281,4 @@ D3D12_CPU_DESCRIPTOR_HANDLE DescHeap::push_back_get_handle(
   return _end;
 }
 
-[[nodiscard]] u32 ResourceLibrary::get_resource_index(
-    const ResourceViewInfo &info) {
-  if (info.type == ResourceType::Buffer) {
-    return buffer_view_cache.contains(info.views.buffer_view)
-               ? storage.bindable_desc_heap.get_index_of(
-                     buffer_view_cache[info.views.buffer_view])
-               : storage.bindable_desc_heap.push_back(info);
-  }
-  return texture_view_cache.contains(info.views.texture_view)
-             ? storage.bindable_desc_heap.get_index_of(
-                   texture_view_cache[info.views.texture_view])
-             : storage.bindable_desc_heap.push_back(info);
-}
-
-[[nodiscard]] D3D12_CPU_DESCRIPTOR_HANDLE ResourceLibrary::get_desc_handle(
-    const ResourceViewInfo &info) {
-  if (info.type == ResourceType::Buffer) {
-    return buffer_view_cache.contains(info.views.buffer_view)
-               ? buffer_view_cache[info.views.buffer_view]
-               : storage.bindable_desc_heap.push_back_get_handle(info);
-  }
-  return texture_view_cache.contains(info.views.texture_view)
-             ? texture_view_cache[info.views.texture_view]
-             : storage.bindable_desc_heap.push_back_get_handle(info);
-}
 }  // namespace d

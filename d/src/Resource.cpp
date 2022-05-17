@@ -23,7 +23,8 @@ u32 Context::RegisterResource(const ComPtr<ID3D12Resource> &resource,
   u32 handle = found_spot ? static_cast<u32>(spot)
                           : static_cast<u32>(res_lib.resources.size());
 
-  const auto default_state = ResourceState{.state = D3D12_RESOURCE_STATE_COMMON};
+  const auto default_state =
+      ResourceState{.state = D3D12_RESOURCE_STATE_COMMON};
 
   if (!found_spot)
     res_lib.resources.push_back(resource),
@@ -53,18 +54,18 @@ Resource<Buffer> Context::create_buffer(BufferCreateInfo &&create_info) {
   D3D12MA::ALLOCATION_DESC allocation_desc = {};
   D3D12_RESOURCE_STATES state;
   switch (create_info.usage) {
-    case MemoryUsage::GPU:
-      allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-      state = D3D12_RESOURCE_STATE_COPY_DEST;
-      break;
-    case MemoryUsage::Mappable:
-      allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-      state = D3D12_RESOURCE_STATE_GENERIC_READ;
-      break;
-    case MemoryUsage::CPU_Readable:
-      allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
-      state = D3D12_RESOURCE_STATE_GENERIC_READ;
-      break;
+  case MemoryUsage::GPU:
+    allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+    state = D3D12_RESOURCE_STATE_COPY_DEST;
+    break;
+  case MemoryUsage::Mappable:
+    allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
+    state = D3D12_RESOURCE_STATE_GENERIC_READ;
+    break;
+  case MemoryUsage::CPU_Readable:
+    allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
+    state = D3D12_RESOURCE_STATE_GENERIC_READ;
+    break;
   }
 
   ComPtr<D3D12MA::Allocation> allocation;
@@ -126,7 +127,7 @@ BufferViewInfo::get_native_view() const {
                                 : D3D12_BUFFER_SRV_FLAG_RAW,
             },
     };
-  } else {  // atomic read_write
+  } else { // atomic read_write
     return D3D12_UNORDERED_ACCESS_VIEW_DESC{
         .Format = stride ? DXGI_FORMAT_UNKNOWN : DXGI_FORMAT_R32_TYPELESS,
         .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
@@ -135,7 +136,7 @@ BufferViewInfo::get_native_view() const {
                 .FirstElement = first_element,
                 .NumElements = num_elements,
                 .StructureByteStride = stride,
-                .CounterOffsetInBytes = 0u,  // TODO: no UAV counter support
+                .CounterOffsetInBytes = 0u, // TODO: no UAV counter support
                 .Flags = stride ? D3D12_BUFFER_UAV_FLAG_NONE
                                 : D3D12_BUFFER_UAV_FLAG_RAW,
             },
@@ -180,7 +181,7 @@ TextureViewInfo::get_native_view() const {
                   .PlaneSlice = 0,
               },
       };
-    } else {  // DEPTH TEXTURE
+    } else { // DEPTH TEXTURE
       return D3D12_DEPTH_STENCIL_VIEW_DESC{
           .Format = format,
           .ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D,
@@ -208,7 +209,7 @@ TextureViewInfo::get_native_view() const {
               },
       };
     } else if (texture_usage ==
-               TextureUsage::SHADER_READ_WRITE_ATOMIC) {  // atomic read_write
+               TextureUsage::SHADER_READ_WRITE_ATOMIC) { // atomic read_write
       return D3D12_UNORDERED_ACCESS_VIEW_DESC{
           .Format = format,
           .ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY,
@@ -232,7 +233,7 @@ TextureViewInfo::get_native_view() const {
                   .PlaneSlice = 0,
               },
       };
-    } else {  // DEPTH TEXTURE
+    } else { // DEPTH TEXTURE
       return D3D12_DEPTH_STENCIL_VIEW_DESC{
           .Format = format,
           .ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D,
@@ -259,7 +260,7 @@ TextureViewInfo::get_native_view() const {
               },
       };
     } else if (texture_usage ==
-               TextureUsage::SHADER_READ_WRITE_ATOMIC) {  // atomic read_write
+               TextureUsage::SHADER_READ_WRITE_ATOMIC) { // atomic read_write
       return D3D12_UNORDERED_ACCESS_VIEW_DESC{
           .Format = format,
           .ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D,
@@ -281,7 +282,7 @@ TextureViewInfo::get_native_view() const {
                   .WSize = num_slices,
               },
       };
-    } else {  // DEPTH TEXTURE
+    } else { // DEPTH TEXTURE
       spdlog::error("Cannot create depth/stencil view from 3D texture");
       throw std::exception("Cannot create depth/stencil view from 3D texture");
     }
@@ -291,18 +292,82 @@ TextureViewInfo::get_native_view() const {
   }
 }
 
+[[nodiscard]] auto Resource<D2>::rtv_view(std::optional<u32> mip_slice) const
+    -> ResourceViewInfo {
+  return ResourceViewInfo{
+      .views =
+          {
+              .texture_view =
+                  {
+                      .resource_handle = static_cast<Handle>(handle),
+                      .format = get_native_res(static_cast<Handle>(handle))
+                                    ->GetDesc()
+                                    .Format,
+                      .texture_usage = TextureUsage::RENDER_TARGET,
+                      .mip_slice = mip_slice.value_or(0u),
+                      .type = ResourceType::D2,
+                  },
+          },
+      .type = ResourceType::D2,
+  };
+}
+
 [[nodiscard]] auto ResourceViewInfo::desc_index() const -> u32 {
+  auto *heap = &c.res_lib.storage.bindable_desc_heap;
   auto &lib = c.res_lib;
   if (type == ResourceType::Buffer) {
     return lib.buffer_view_cache.contains(views.buffer_view)
-               ? lib.storage.bindable_desc_heap.get_index_of(
-                     lib.buffer_view_cache[views.buffer_view])
-               : lib.storage.bindable_desc_heap.push_back(*this);
+               ? heap->get_index_of(lib.buffer_view_cache[views.buffer_view])
+               : heap->push_back(*this);
+  }
+  const auto usage = views.texture_view.texture_usage;
+  if (usage == TextureUsage::RENDER_TARGET) {
+    heap = &c.res_lib.storage.render_target_heap;
+  } else if (usage == TextureUsage::DEPTH_STENCIL) {
+    heap = &c.res_lib.storage.depth_stencil_heap;
   }
   return lib.texture_view_cache.contains(views.texture_view)
-             ? lib.storage.bindable_desc_heap.get_index_of(
-                   lib.texture_view_cache[views.texture_view])
-             : lib.storage.bindable_desc_heap.push_back(*this);
+             ? heap->get_index_of(lib.texture_view_cache[views.texture_view])
+             : heap->push_back(*this);
+}
+
+[[nodiscard]] auto ResourceViewInfo::desc_handle() const
+    -> D3D12_CPU_DESCRIPTOR_HANDLE {
+  auto *heap = &c.res_lib.storage.bindable_desc_heap;
+  auto &lib = c.res_lib;
+  if (type == ResourceType::Buffer) {
+    return lib.buffer_view_cache.contains(views.buffer_view)
+               ? lib.buffer_view_cache[views.buffer_view]
+               : heap->push_back_get_handle(*this);
+  }
+  const auto usage = views.texture_view.texture_usage;
+  if (usage == TextureUsage::RENDER_TARGET) {
+    heap = &c.res_lib.storage.render_target_heap;
+  } else if (usage == TextureUsage::DEPTH_STENCIL) {
+    heap = &c.res_lib.storage.depth_stencil_heap;
+  }
+  return lib.texture_view_cache.contains(views.texture_view)
+             ? lib.texture_view_cache[views.texture_view]
+             : heap->push_back_get_handle(*this);
+}
+
+auto Resource<Buffer>::map_and_copy(ByteSpan data, usize offset) const -> void {
+  void *mapped;
+  DX_CHECK(
+      d::get_native_res(static_cast<u32>(handle))->Map(0, nullptr, &mapped));
+  memcpy(static_cast<char*>(mapped) + offset, reinterpret_cast<void*>(data.data()), data.size());
+  d::get_native_res(static_cast<u32>(handle))->Unmap(0, nullptr);
+}
+
+[[nodiscard]] auto Resource<Buffer>::ibo_view(std::optional<u32> index_offset,
+                                              u32 num_indices) const
+    -> D3D12_INDEX_BUFFER_VIEW {
+  return D3D12_INDEX_BUFFER_VIEW{
+      .BufferLocation = get_native_res(*this)->GetGPUVirtualAddress() +
+                        index_offset.value_or(0u) * sizeof(u32),
+      .SizeInBytes = num_indices * static_cast<UINT>(sizeof(u32)),
+      .Format = DXGI_FORMAT_R32_UINT,
+  };
 }
 
 [[nodiscard]] Resource<D2> util::create_texture_from_file(const char *path) {
@@ -341,9 +406,9 @@ TextureViewInfo::get_native_view() const {
     subresource.SlicePitch = pImages[i].slicePitch;
     subresource.pData = pImages[i].pixels;
   }
-  UINT64 requiredSize = GetRequiredIntermediateSize(get_native_res(res), 0,
-                                                    static_cast<u32>(subresources.size()));
+  UINT64 requiredSize = GetRequiredIntermediateSize(
+      get_native_res(res), 0, static_cast<u32>(subresources.size()));
 
   // copy buffer
 }
-}  // namespace d
+} // namespace d

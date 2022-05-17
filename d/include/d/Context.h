@@ -1,7 +1,6 @@
 #pragma once
 
 #include "d/stdafx.h"
-#include "d/Swapchain.h"
 
 #include <GLFW/glfw3.h>
 #include <d/D3D12MemAlloc.h>
@@ -18,6 +17,7 @@ struct DescHeap {
   usize size{0};
   u32 stride;
 
+  DescHeap() = default;
   auto init(D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_desc) -> void;
 
   auto push_back(const ResourceViewInfo &info) -> u32;
@@ -30,7 +30,6 @@ struct DescriptorStorage {
   DescHeap render_target_heap;
   DescHeap depth_stencil_heap;
   DescHeap bindable_desc_heap;
-  DescHeap push_constant_heap;
 
   void init(const u32 num_desc);
 };
@@ -50,10 +49,15 @@ struct ResourceLibrary {
       texture_view_cache;
 
   DescriptorStorage storage;
+};
 
-  [[nodiscard]] auto get_resource_index(const ResourceViewInfo &info) -> u32;
-  [[nodiscard]] auto get_desc_handle(const ResourceViewInfo &info)
-      -> D3D12_CPU_DESCRIPTOR_HANDLE;
+struct Swapchain {
+  ComPtr<IDXGISwapChain1> swapchain;
+  std::vector<Resource<D2>> images;
+  DXGI_FORMAT format;
+  u32 width{0};
+  u32 height{0};
+  u32 image_index{0};
 };
 
 struct Context {
@@ -66,8 +70,6 @@ struct Context {
   ComPtr<ID3D12Debug> debug_interface;
   ComPtr<ID3D12Debug1> debug_interface1;
 #endif
-
-  ComPtr<ID3D12DescriptorHeap> desc_heap_rtv;
 
   CommandList main_command_list;
 
@@ -93,8 +95,8 @@ struct Context {
 
   [[nodiscard]] Resource<Buffer> create_buffer(BufferCreateInfo &&create_info);
 
-  [[nodiscard]] Resource<D2> create_texture_2d(
-      TextureCreateInfo &&texture_info);
+  [[nodiscard]] Resource<D2>
+  create_texture_2d(TextureCreateInfo &&texture_info);
 
   u32 RegisterResource(const ComPtr<ID3D12Resource> &resource,
                        const ComPtr<D3D12MA::Allocation> &allocation);
@@ -111,6 +113,11 @@ inline ID3D12Resource *get_native_res(Resource<T> handle) {
   u32 index = static_cast<u32>(handle);
   return c.res_lib.resources[index].Get();
 };
+template <ResourceC T>
+inline ResourceState& get_res_state(Resource<T> handle) {
+  u32 index = static_cast<u32>(handle);
+  return c.res_lib.resource_states[index];
+};
 
 inline ID3D12Resource *get_native_res(Handle handle) {
   return c.res_lib.resources[handle].Get();
@@ -118,4 +125,4 @@ inline ID3D12Resource *get_native_res(Handle handle) {
 
 void InitContext(GLFWwindow *window, u32 sc_count);
 
-}  // namespace d
+} // namespace d

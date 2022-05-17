@@ -158,7 +158,6 @@
     <ClInclude Include="d\include\d\Resource.h" />
     <ClInclude Include="d\include\d\Stager.h" />
     <ClInclude Include="d\include\d\stdafx.h" />
-    <ClInclude Include="d\include\d\Swapchain.h" />
     <ClInclude Include="d\include\d\Types.h" />
     <ClInclude Include="include\cgltf.h" />
     <ClInclude Include="include\tiny_obj_loader.h" />

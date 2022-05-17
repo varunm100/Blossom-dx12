@@ -3,6 +3,7 @@
 #include <optional>
 #include <variant>
 
+#include "Logging.h"
 #include "d/Hash.h"
 #include "d/Types.h"
 #include "d/stdafx.h"
@@ -98,7 +99,9 @@ template <ResourceC T>
 struct Resource {
   T handle;
 
-  explicit Resource(u32 _handle) : handle(static_cast<T>(_handle)) {}
+
+  Resource() = default;
+  Resource(u32 _handle) : handle(static_cast<T>(_handle)) {}
 
   explicit operator u32() const { return static_cast<Handle>(handle); }
 };
@@ -111,15 +114,23 @@ struct ResourceViewInfo {
   ResourceType type{};
 
   [[nodiscard]] auto desc_index() const -> u32;
+  [[nodiscard]] auto desc_handle() const -> D3D12_CPU_DESCRIPTOR_HANDLE;
 };
 
 template <>
 struct Resource<Buffer> {
   Buffer handle;
 
+  Resource() = default;
   explicit Resource(u32 _handle) : handle(static_cast<Buffer>(_handle)) {}
 
   explicit operator u32() const { return static_cast<Handle>(handle); }
+
+  auto map_and_copy(ByteSpan data, usize offset=0) const -> void;
+
+	[[nodiscard]] auto ibo_view(std::optional<u32> index_offset,
+                              u32 num_indices) const
+      -> D3D12_INDEX_BUFFER_VIEW;
 
   [[nodiscard]] auto read_view(bool raw, std::optional<u32> first_element,
                                std::optional<u32> num_elements,
@@ -165,21 +176,7 @@ struct Resource<D2> {
   explicit operator u32() const { return static_cast<Handle>(handle); }
 
   [[nodiscard]] auto rtv_view(std::optional<u32> mip_slice) const
-      -> ResourceViewInfo {
-    return ResourceViewInfo{
-        .views =
-            {
-                .texture_view =
-                    {
-                        .resource_handle = u32(handle),
-                        .texture_usage = TextureUsage::RENDER_TARGET,
-                        .mip_slice = mip_slice.value_or(0u),
-                        .type = ResourceType::D2,
-                    },
-            },
-        .type = ResourceType::D2,
-    };
-  }
+      -> ResourceViewInfo;
 
   [[nodiscard]] auto dsv_view(std::optional<u32> mip_slice) const
       -> ResourceViewInfo {
