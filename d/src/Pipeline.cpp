@@ -2,7 +2,7 @@
 #include "d/Context.h"
 
 namespace d {
-  auto PipelineStream::default_raster() -> PipelineStream & {
+  auto GraphicsPipelineStream::default_raster() -> GraphicsPipelineStream & {
     desc = D3D12_GRAPHICS_PIPELINE_STATE_DESC{
       .BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT),
       .SampleMask = 0xffffffff,
@@ -26,21 +26,21 @@ namespace d {
     return *this;
   }
 
-  auto PipelineStream::set_vertex_shader(const char *label) -> PipelineStream & {
+  auto GraphicsPipelineStream::set_vertex_shader(const char *label) -> GraphicsPipelineStream & {
     ShaderEntry& vs = c.library.get_shader_asset(label);
     desc.VS.pShaderBytecode = vs.code->GetBufferPointer();
     desc.VS.BytecodeLength = vs.code->GetBufferSize();
     return *this;
   }
 
-  auto PipelineStream::set_fragment_shader(const char *label) -> PipelineStream & {
+  auto GraphicsPipelineStream::set_fragment_shader(const char *label) -> GraphicsPipelineStream & {
     ShaderEntry& fs = c.library.get_shader_asset(label);
     desc.PS.pShaderBytecode = fs.code->GetBufferPointer();
     desc.PS.BytecodeLength = fs.code->GetBufferSize();
     return *this;
   }
 
-  auto PipelineStream::build(bool include_root_constants, std::optional<u32> num_constants) -> Pipeline {
+  auto GraphicsPipelineStream::build(bool include_root_constants, std::optional<u32> num_constants) -> Pipeline {
     Pipeline pl{};
     auto root_sign_desc = CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC{};
     const auto param = D3D12_ROOT_PARAMETER1{

@@ -26,14 +26,8 @@ extern "C" {
 extern "C" {
 	__declspec(dllexport) extern const char* D3D12SDKPath = "../../agility_sdk/";
 }
-
-struct Vert {
-	glm::vec3 pos;
-	glm::vec3 normal;
-
-	Vert() = default;
-	Vert(float px, float py, float pz, float nx, float ny, float nz) : pos(px, py, pz), normal(nx, ny, nz) {};
-};
+struct Vert;
+std::tuple<std::vector<u32>, std::vector<Vert>> load_model(const char* file);
 
 int main() {
 	glfwInit();
@@ -52,19 +46,78 @@ int main() {
 			}
 		});
 	d::InitContext(window, 3);
-	d::Queue async_transfer = d::Queue(d::QueueType::GENERAL);
 
-	// init buffer
-	std::vector<Vert> verts;
-	//float verts[12] = {
-	//    -0.5, -0.5, 0.0,
-	//    0.5, -0.5, 0.0,
-	//    -0.5, 0.5, 0.0,
-	//    0.5, 0.5, 0.0,
-	//};
+	auto [indices, verts] = load_model("assets/models/kitten.obj");
+
+	auto vert_bytes = ByteSpan(verts);
+	auto indices_bytes = ByteSpan(indices);
+
+	using namespace d;
+	auto vbo = c.create_buffer(BufferCreateInfo{ .size = vert_bytes.size(), .usage = MemoryUsage::GPU });
+	auto ibo = c.create_buffer(BufferCreateInfo{ .size = indices_bytes.size(), .usage = MemoryUsage::GPU });
+
+	Stager stager;
+	stager.stage_buffer(vbo, vert_bytes);
+	stager.stage_buffer(ibo, indices_bytes);
+	stager.stage_block_until_over();
+
+	c.library.add_shader("shaders/test.hlsl", ShaderType::VERTEX,"test_vs");
+	c.library.add_shader("shaders/test.hlsl", ShaderType::FRAGMENT,"test_fs");
+
+	struct Constants {
+		u32 vbo_index;
+		float color1[3];
+		float color2[3];
+	};
+
+	auto draw_consts = Constants{
+			.vbo_index = vbo.read_view(true, 0, vert_bytes.size() / sizeof(u32), 0)
+											.desc_index(),
+			.color1 = {0., 1., 0.},
+			.color2 = {1., 0., 0.},
+	};
+
+	Pipeline pl = GraphicsPipelineStream()
+		.default_raster()
+		.set_vertex_shader("test_vs")
+		.set_fragment_shader("test_fs")
+		.build(true, sizeof(Constants) / sizeof(u32));
+
+	while (!glfwWindowShouldClose(window)) {
+		// handle input
+		const auto [out_handle, cl] = c.BeginRendering();
+		auto draw_info0 = DirectDrawInfo{
+			//.start_index = 0,
+			.index_count = static_cast<u32>(indices_bytes.size() / sizeof(u32)),
+			//.start_vertex = 0,
+			.ibo = ibo,
+			.push_constants = ByteSpan(draw_consts),
+		};
+		cl.draw_directs(DrawDirectsInfo{
+				.output = out_handle,
+				.draw_infos = {draw_info0},
+				.pl = pl,
+			});
+		c.EndRendering();
+		glfwPollEvents();
+	}
+	glfwDestroyWindow(window);
+	glfwTerminate();
+	return 0;
+}
+
+struct Vert {
+	glm::vec3 pos;
+	glm::vec3 normal;
+
+	Vert() = default;
+	Vert(float px, float py, float pz, float nx, float ny, float nz) : pos(px, py, pz), normal(nx, ny, nz) {};
+};
+
+[[nodscard]] auto load_model(const char* file) -> std::tuple<std::vector<u32>,std::vector<Vert>>{
+	std::string inputfile = file;
 	std::vector<u32> indices;
-
-	std::string inputfile = "assets/models/kitten.obj";
+	std::vector<Vert> verts;
 	tinyobj::ObjReaderConfig reader_config;
 	reader_config.mtl_search_path = "./"; // Path to material files
 	tinyobj::ObjReader reader;
@@ -107,62 +160,5 @@ int main() {
 			index_offset += fv;
 		}
 	}
-	auto vert_bytes = ByteSpan(verts);
-	auto indices_bytes = ByteSpan(indices);
-
-	auto vbo = d::c.create_buffer(
-		d::BufferCreateInfo{ .size = vert_bytes.size(), .usage = d::MemoryUsage::GPU });
-	auto ibo = d::c.create_buffer(d::BufferCreateInfo{
-			.size = indices_bytes.size(), .usage = d::MemoryUsage::GPU });
-
-	d::Stager stager(std::max(vert_bytes.size(), indices_bytes.size()));
-	stager.stage_buffer(vbo, vert_bytes);
-	stager.stage_buffer(ibo, indices_bytes);
-	stager.stage_block_until_over();
-
-	d::c.library.add_shader("shaders/test.hlsl", d::ShaderType::VERTEX,
-		"test_vs");
-	d::c.library.add_shader("shaders/test.hlsl", d::ShaderType::FRAGMENT,
-		"test_fs");
-
-	struct Constants {
-		u32 vbo_index;
-		float color1[3];
-		float color2[3];
-	};
-	auto draw_consts = Constants{
-			.vbo_index = vbo.read_view(true, 0, vert_bytes.size() / sizeof(u32), 0)
-											 .desc_index(),
-			.color1 = {0., 1., 0.},
-			.color2 = {1., 0., 0.},
-	};
-
-	d::Pipeline pl = d::PipelineStream()
-		.default_raster()
-		.set_vertex_shader("test_vs")
-		.set_fragment_shader("test_fs")
-		.build(true, sizeof(Constants) / sizeof(u32));
-
-	while (!glfwWindowShouldClose(window)) {
-		// handle input
-		const auto [out_handle, cl] = d::c.BeginRendering();
-		auto draw_info0 = d::DirectDrawInfo{
-			//.start_index = 0,
-			.index_count = static_cast<u32>(indices_bytes.size() / sizeof(u32)),
-			//.start_vertex = 0,
-			.ibo = ibo,
-			.push_constants = ByteSpan(draw_consts),
-		};
-		cl.draw_directs(d::DrawDirectsInfo{
-				.output = out_handle,
-				.draw_infos = {draw_info0},
-				.pl = pl,
-			});
-		d::c.EndRendering();
-
-		glfwPollEvents();
-	}
-	glfwDestroyWindow(window);
-	glfwTerminate();
-	return 0;
+	return std::make_tuple(indices, verts);
 }

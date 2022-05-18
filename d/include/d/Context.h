@@ -100,6 +100,7 @@ struct Context {
 
   u32 RegisterResource(const ComPtr<ID3D12Resource> &resource,
                        const ComPtr<D3D12MA::Allocation> &allocation);
+  auto release_resource(Handle handle);
 
   D3D12_RESOURCE_BARRIER
   get_transition(ID3D12Resource *resource, D3D12_RESOURCE_STATES state_before,

@@ -8,16 +8,22 @@
 namespace d {
   struct Pipeline;
 
-  struct PipelineStream {
+  struct GraphicsPipelineStream {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC desc;
 
-    auto default_raster() -> PipelineStream &;
+    auto default_raster() -> GraphicsPipelineStream &;
 
-    auto set_vertex_shader(const char *label) -> PipelineStream &;
+    auto set_vertex_shader(const char *label) -> GraphicsPipelineStream &;
 
-    auto set_fragment_shader(const char *label) -> PipelineStream &;
+    auto set_fragment_shader(const char *label) -> GraphicsPipelineStream &;
 
     auto build(bool include_root_constants, std::optional<u32> num_constants) -> Pipeline;
+  };
+
+  struct RayTracingPipelineStream {
+    D3D12_RAYTRACING_PIPELINE_CONFIG pso;
+
+    auto build() -> Pipeline;
   };
 
   struct Pipeline {

@@ -156,6 +156,8 @@ Context::BeginRendering() {
       D3D12_RESOURCE_STATE_RENDER_TARGET;
   main_command_list.handle->ResourceBarrier(1, &rd_barrier);
 
+  DX_CHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+
   return std::make_pair(swap_chain.images[image_index].rtv_view({}).desc_handle(), std::ref(main_command_list));
 }
 
