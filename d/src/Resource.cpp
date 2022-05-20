@@ -301,13 +301,11 @@ namespace d {
 				};
 			}
 			else { // DEPTH TEXTURE
-				spdlog::error("Cannot create depth/stencil view from 3D texture");
-				throw std::exception("Cannot create depth/stencil view from 3D texture");
+				assert_log(0, "Cannot create depth/stencil view from 3D texture");
 			}
 		}
 		else {
-			spdlog::error("Unexpected Resource Type");
-			throw std::exception("Unexpected Resource Type");
+			assert_log(0, "Unexpected Resource Type");
 		}
 	}
 
@@ -389,50 +387,5 @@ namespace d {
 				.SizeInBytes = num_indices * static_cast<UINT>(sizeof(u32)),
 				.Format = DXGI_FORMAT_R32_UINT,
 		};
-	}
-
-	[[nodiscard]] Resource<D2> util::create_texture_from_file(const char* path) {
-		using namespace DirectX;
-		const std::filesystem::path texture_path(path);
-		TexMetadata metadata;
-		ScratchImage scratch;
-
-		if (!std::filesystem::exists(texture_path)) {
-			spdlog::error("Cannot find texture file: {} ", path);
-			throw std::exception("File not found.");
-		}
-		if (texture_path.extension() == ".dds") {
-			DX_CHECK(LoadFromDDSFile(texture_path.c_str(), DDS_FLAGS_FORCE_RGB,
-				&metadata, scratch));
-		}
-		else if (texture_path.extension() == ".hdr") {
-			DX_CHECK(LoadFromHDRFile(texture_path.c_str(), &metadata, scratch));
-		}
-		else if (texture_path.extension() == ".tga") {
-			DX_CHECK(LoadFromTGAFile(texture_path.c_str(), &metadata, scratch));
-		}
-		else {
-			DX_CHECK(LoadFromWICFile(texture_path.c_str(), WIC_FLAGS_FORCE_RGB,
-				&metadata, scratch));
-		}
-		Resource<D2> res = c.create_texture_2d(TextureCreateInfo{
-				.format = DXGI_FORMAT_R8G8B8A8_UNORM,
-				.dim = TextureDimension::D2,
-				.extent = TextureExtent{.width = static_cast<u32>(metadata.width),
-																.height = static_cast<u32>(metadata.height)},
-				.usage = TextureUsage::SHADER_READ,
-			});
-		std::vector<D3D12_SUBRESOURCE_DATA> subresources(scratch.GetImageCount());
-		const Image* pImages = scratch.GetImages();
-		for (int i = 0; i < scratch.GetImageCount(); ++i) {
-			auto& subresource = subresources[i];
-			subresource.RowPitch = pImages[i].rowPitch;
-			subresource.SlicePitch = pImages[i].slicePitch;
-			subresource.pData = pImages[i].pixels;
-		}
-		UINT64 requiredSize = GetRequiredIntermediateSize(
-			get_native_res(res), 0, static_cast<u32>(subresources.size()));
-
-		// copy buffer
 	}
 } // namespace d

@@ -30,13 +30,7 @@
     <ClCompile Include="d\src\D3D12MemAlloc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="d\src\Future.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="d\src\Queue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="d\src\RenderGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="d\src\Resource.cpp">
@@ -72,9 +66,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="d\include\d\Queue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="d\include\d\RenderGraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="d\include\d\Resource.h">

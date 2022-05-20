@@ -1,33 +1,15 @@
-#include <exception>
-
-#define GLFW_EXPOSE_NATIVE_WIN32
-
-#include <GLFW/glfw3.h>
-#include <GLFW/glfw3native.h>
-
 #include "d/Context.h"
-#include "d/Logging.h"
 #include "d/Pipeline.h"
 #include "d/Queue.h"
-#include <DirectXTex.h>
-
-#include <glm/glm.hpp>
-#include <iostream>
-
-#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
-// Optional. define TINYOBJLOADER_USE_MAPBOX_EARCUT gives robust trinagulation. Requires C++11
-//#define TINYOBJLOADER_USE_MAPBOX_EARCUT
-#include "tiny_obj_loader.h"
 #include "d/Stager.h"
 
-extern "C" {
-	__declspec(dllexport) extern const UINT D3D12SDKVersion = 700;
-}
-extern "C" {
-	__declspec(dllexport) extern const char* D3D12SDKPath = "../../agility_sdk/";
-}
+#include <glm/glm.hpp>
+
+#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
+#include "tiny_obj_loader.h"
+
 struct Vert;
-std::tuple<std::vector<u32>, std::vector<Vert>> load_model(const char* file);
+std::tuple<std::vector<Vert>, std::vector<u32>> load_model(const char* file);
 
 int main() {
 	glfwInit();
@@ -47,7 +29,7 @@ int main() {
 		});
 	d::InitContext(window, 3);
 
-	auto [indices, verts] = load_model("assets/models/kitten.obj");
+	auto [verts, indices] = load_model("assets/models/kitten.obj");
 
 	auto vert_bytes = ByteSpan(verts);
 	auto indices_bytes = ByteSpan(indices);
@@ -61,8 +43,8 @@ int main() {
 	stager.stage_buffer(ibo, indices_bytes);
 	stager.stage_block_until_over();
 
-	c.library.add_shader("shaders/test.hlsl", ShaderType::VERTEX,"test_vs");
-	c.library.add_shader("shaders/test.hlsl", ShaderType::FRAGMENT,"test_fs");
+	c.library.add_shader("shaders/test.hlsl", ShaderType::VERTEX, "test_vs");
+	c.library.add_shader("shaders/test.hlsl", ShaderType::FRAGMENT, "test_fs");
 
 	struct Constants {
 		u32 vbo_index;
@@ -71,7 +53,7 @@ int main() {
 	};
 
 	auto draw_consts = Constants{
-			.vbo_index = vbo.read_view(true, 0, vert_bytes.size() / sizeof(u32), 0)
+			.vbo_index = vbo.read_view(true, {}, static_cast<u32>(vert_bytes.size() / sizeof(u32)), {})
 											.desc_index(),
 			.color1 = {0., 1., 0.},
 			.color2 = {1., 0., 0.},
@@ -94,7 +76,7 @@ int main() {
 			.push_constants = ByteSpan(draw_consts),
 		};
 		cl.draw_directs(DrawDirectsInfo{
-				.output = out_handle,
+				.output = out_handle.rtv_view({}).desc_handle(),
 				.draw_infos = {draw_info0},
 				.pl = pl,
 			});
@@ -114,7 +96,7 @@ struct Vert {
 	Vert(float px, float py, float pz, float nx, float ny, float nz) : pos(px, py, pz), normal(nx, ny, nz) {};
 };
 
-[[nodscard]] auto load_model(const char* file) -> std::tuple<std::vector<u32>,std::vector<Vert>>{
+[[nodiscard]] auto load_model(const char* file) -> std::tuple<std::vector<Vert>, std::vector<u32>> {
 	std::string inputfile = file;
 	std::vector<u32> indices;
 	std::vector<Vert> verts;
@@ -123,13 +105,13 @@ struct Vert {
 	tinyobj::ObjReader reader;
 	if (!reader.ParseFromFile(inputfile, reader_config)) {
 		if (!reader.Error().empty()) {
-			std::cerr << "TinyObjReader: " << reader.Error();
+			err_log("TinyObjReader: {}", reader.Error());
+			assert(0);
 		}
-		exit(1);
 	}
 
 	if (!reader.Warning().empty()) {
-		std::cout << "TinyObjReader: " << reader.Warning();
+		err_log("TinyObjReader: {}", reader.Warning());
 	}
 
 	auto& attrib = reader.GetAttrib();
@@ -160,5 +142,12 @@ struct Vert {
 			index_offset += fv;
 		}
 	}
-	return std::make_tuple(indices, verts);
+	return std::make_tuple(verts, indices);
+}
+
+extern "C" {
+	__declspec(dllexport) extern const UINT D3D12SDKVersion = 700;
+}
+extern "C" {
+	__declspec(dllexport) extern const char* D3D12SDKPath = "../../agility_sdk/";
 }
