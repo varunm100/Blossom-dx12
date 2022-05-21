@@ -38,7 +38,8 @@ namespace d {
 	}
 
 	// only release staging resources! resources that have views need to flush their view cache which is not implemented yet :)
-	auto Context::release_resource(Handle handle) {
+	auto Context::release_resource(Handle handle)-> void {
+		res_lib.allocations[handle] = nullptr;
 		res_lib.resources[handle] = nullptr;
 	}
 

@@ -42,6 +42,9 @@
     <ClCompile Include="d\src\Pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="d\src\RayTracing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d\include\d\AssetLibrary.h">
@@ -396,6 +399,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\tiny_obj_loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\RayTracing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

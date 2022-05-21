@@ -31,7 +31,7 @@ namespace d {
 		DescHeap depth_stencil_heap;
 		DescHeap bindable_desc_heap;
 
-		void init(const u32 num_desc);
+		auto init(const u32 num_desc) -> void;
 	};
 
 	struct ResourceState {
@@ -86,44 +86,44 @@ namespace d {
 
 		~Context() = default;
 
-		void init(GLFWwindow* window, u32 sc_count);
+		auto init(GLFWwindow* window, u32 sc_count) -> void;
 
-		[[nodiscard]] std::pair<Resource<D2>, CommandList&>
-			BeginRendering();
+		[[nodiscard]] auto
+			BeginRendering()->std::pair<Resource<D2>, CommandList&>;
 
 		void EndRendering();
 
-		[[nodiscard]] Resource<Buffer> create_buffer(BufferCreateInfo&& create_info);
+		[[nodiscard]] auto create_buffer(BufferCreateInfo&& create_info)->Resource<Buffer>;
 
-		[[nodiscard]] Resource<D2>
-			create_texture_2d(TextureCreateInfo&& texture_info);
+		[[nodiscard]] auto
+			create_texture_2d(TextureCreateInfo&& texture_info)->Resource<D2>;
 
-		u32 RegisterResource(const ComPtr<ID3D12Resource>& resource,
-			const ComPtr<D3D12MA::Allocation>& allocation);
-		auto release_resource(Handle handle);
+		auto RegisterResource(const ComPtr<ID3D12Resource>& resource,
+			const ComPtr<D3D12MA::Allocation>& allocation)->u32;
+		auto release_resource(Handle handle) -> void;
 
-		D3D12_RESOURCE_BARRIER
+		auto
 			get_transition(ID3D12Resource* resource, D3D12_RESOURCE_STATES state_before,
-				D3D12_RESOURCE_STATES state_after) const;
+				D3D12_RESOURCE_STATES state_after) const->D3D12_RESOURCE_BARRIER;
 	};
 
 	extern Context c;
 
 	template <ResourceC T>
-	inline ID3D12Resource* get_native_res(Resource<T> handle) {
+	inline auto get_native_res(Resource<T> handle) -> ID3D12Resource* {
 		u32 index = static_cast<u32>(handle);
 		return c.res_lib.resources[index].Get();
 	};
 	template <ResourceC T>
-	inline ResourceState& get_res_state(Resource<T> handle) {
+	inline auto get_res_state(Resource<T> handle) -> ResourceState& {
 		u32 index = static_cast<u32>(handle);
 		return c.res_lib.resource_states[index];
 	};
 
-	inline ID3D12Resource* get_native_res(Handle handle) {
+	inline auto get_native_res(Handle handle) -> ID3D12Resource* {
 		return c.res_lib.resources[handle].Get();
 	}
 
-	void InitContext(GLFWwindow* window, u32 sc_count);
+	auto InitContext(GLFWwindow* window, u32 sc_count) -> void;
 
 } // namespace d

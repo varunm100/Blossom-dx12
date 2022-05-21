@@ -76,6 +76,7 @@ namespace d {
 				.size = max_stage_size,
 				.usage = MemoryUsage::Mappable,
 			});
+		// super dumb, but it works for now lmao
 		for (auto const entry : buffer_entries) {
 			list.record()
 				.copy_buffer_region(stage, entry.buffer, entry.data.size())
@@ -84,6 +85,8 @@ namespace d {
 			async_transfer.submit_lists({ list });
 			async_transfer.block_until_idle();
 		}
+		
+		c.release_resource(static_cast<Handle>(stage));
 		buffer_entries.clear();
 	}
 } // namespace d

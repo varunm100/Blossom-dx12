@@ -25,6 +25,7 @@
     <ClCompile Include="d\src\D3D12MemAlloc.cpp" />
     <ClCompile Include="d\src\Pipeline.cpp" />
     <ClCompile Include="d\src\Queue.cpp" />
+    <ClCompile Include="d\src\RayTracing.cpp" />
     <ClCompile Include="d\src\Resource.cpp" />
     <ClCompile Include="d\src\Stager.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="d\include\d\Logging.h" />
     <ClInclude Include="d\include\d\Pipeline.h" />
     <ClInclude Include="d\include\d\Queue.h" />
+    <ClInclude Include="d\include\d\RayTracing.h" />
     <ClInclude Include="d\include\d\Resource.h" />
     <ClInclude Include="d\include\d\Stager.h" />
     <ClInclude Include="d\include\d\stdafx.h" />
