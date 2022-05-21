@@ -43,7 +43,7 @@ namespace d {
 		res_lib.resources[handle] = nullptr;
 	}
 
-	Resource<Buffer> Context::create_buffer(BufferCreateInfo&& create_info) {
+	Resource<Buffer> Context::create_buffer(const BufferCreateInfo& create_info, D3D12_RESOURCE_STATES initial_state) {
 		auto resource_desc = D3D12_RESOURCE_DESC{
 				.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
 				.Width = create_info.size,
@@ -68,11 +68,17 @@ namespace d {
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 			state = D3D12_RESOURCE_STATE_GENERIC_READ;
 			break;
+		case MemoryUsage::GPU_Writable:
+			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
+			state = D3D12_RESOURCE_STATE_COMMON;
+			resource_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+			break;
 		case MemoryUsage::CPU_Readable:
 			allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
 			state = D3D12_RESOURCE_STATE_GENERIC_READ;
 			break;
 		}
+		state = initial_state == D3D12_RESOURCE_STATE_COMMON ? state : initial_state;
 
 		ComPtr<D3D12MA::Allocation> allocation;
 		ComPtr<ID3D12Resource> resource;
@@ -377,6 +383,10 @@ namespace d {
 		DX_CHECK(res->Map(0, nullptr, &mapped));
 		memcpy(static_cast<char*>(mapped) + offset, data.data(), data.size());
 		res->Unmap(0, nullptr);
+	}
+
+	[[nodiscard]] auto Resource<Buffer>::gpu_addr() const ->D3D12_GPU_VIRTUAL_ADDRESS {
+		return get_native_res(*this)->GetGPUVirtualAddress();
 	}
 
 	[[nodiscard]] auto Resource<Buffer>::ibo_view(std::optional<u32> index_offset,

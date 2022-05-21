@@ -25,9 +25,9 @@ namespace d {
 		Stager();
 		~Stager() = default;
 
-		Resource<D2> stage_texture_from_file(const char* path);
-		void stage_buffer(Resource<Buffer> dst, ByteSpan data);
-		void stage_block_until_over();
+		//Resource<D2> stage_texture_from_file(const char* path);
+		auto stage_buffer(Resource<Buffer> dst, ByteSpan data) -> void;
+		auto stage_block_until_over() -> void;
 	};
 
 }

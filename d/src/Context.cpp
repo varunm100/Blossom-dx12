@@ -138,41 +138,15 @@ namespace d {
 
 		const u32& image_index = swap_chain.image_index;
 
-		// create barrier and get render target handle
-		const D3D12_RESOURCE_BARRIER rd_barrier = get_transition(get_native_res(swap_chain.images[image_index]),
-			get_res_state(swap_chain.images[image_index]).state,
-			D3D12_RESOURCE_STATE_RENDER_TARGET);
-		get_res_state(swap_chain.images[image_index]).state =
-			D3D12_RESOURCE_STATE_RENDER_TARGET;
-		main_command_list.handle->ResourceBarrier(1, &rd_barrier);
-
-		DX_CHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+		main_command_list.transition(swap_chain.images[image_index], D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		return std::make_pair(swap_chain.images[image_index], std::ref(main_command_list));
-	}
-
-	D3D12_RESOURCE_BARRIER Context::get_transition(
-		ID3D12Resource* resource, D3D12_RESOURCE_STATES state_before,
-		D3D12_RESOURCE_STATES state_after) const {
-		auto rd_barrier = D3D12_RESOURCE_BARRIER{
-				.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-				.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-		};
-		rd_barrier.Transition.pResource = resource;
-		rd_barrier.Transition.StateBefore = state_before;
-		rd_barrier.Transition.StateAfter = state_after;
-		return rd_barrier;
 	}
 
 	void Context::EndRendering() {
 		u32& image_index = swap_chain.image_index;
 
-		const auto rd_barrier = get_transition(get_native_res(swap_chain.images[image_index]),
-			get_res_state(swap_chain.images[image_index]).state,
-			D3D12_RESOURCE_STATE_PRESENT);
-		get_res_state(swap_chain.images[image_index]).state =
-			D3D12_RESOURCE_STATE_PRESENT;
-		main_command_list.handle->ResourceBarrier(1, &rd_barrier);
+		main_command_list.transition(swap_chain.images[image_index], D3D12_RESOURCE_STATE_PRESENT);
 
 		main_command_list.finish();
 		general_queue.submit_lists({ main_command_list });

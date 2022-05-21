@@ -93,7 +93,7 @@ namespace d {
 
 		void EndRendering();
 
-		[[nodiscard]] auto create_buffer(BufferCreateInfo&& create_info)->Resource<Buffer>;
+		[[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info, D3D12_RESOURCE_STATES initial_state=D3D12_RESOURCE_STATE_COMMON)->Resource<Buffer>;
 
 		[[nodiscard]] auto
 			create_texture_2d(TextureCreateInfo&& texture_info)->Resource<D2>;
@@ -102,12 +102,23 @@ namespace d {
 			const ComPtr<D3D12MA::Allocation>& allocation)->u32;
 		auto release_resource(Handle handle) -> void;
 
-		auto
-			get_transition(ID3D12Resource* resource, D3D12_RESOURCE_STATES state_before,
-				D3D12_RESOURCE_STATES state_after) const->D3D12_RESOURCE_BARRIER;
 	};
 
 	extern Context c;
+
+	inline auto
+		get_transition(ID3D12Resource* resource, D3D12_RESOURCE_STATES state_before,
+			D3D12_RESOURCE_STATES state_after) ->D3D12_RESOURCE_BARRIER
+	{
+		auto rd_barrier = D3D12_RESOURCE_BARRIER{
+				.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+				.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+		};
+		rd_barrier.Transition.pResource = resource;
+		rd_barrier.Transition.StateBefore = state_before;
+		rd_barrier.Transition.StateAfter = state_after;
+		return rd_barrier;
+	}
 
 	template <ResourceC T>
 	inline auto get_native_res(Resource<T> handle) -> ID3D12Resource* {

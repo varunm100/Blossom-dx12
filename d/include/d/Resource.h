@@ -117,6 +117,15 @@ namespace d {
 	};
 
 	template <>
+	struct Resource<AccelStructure> {
+		AccelStructure handle;
+
+		Resource() = default;
+		explicit Resource(u32 _handle) : handle(static_cast<AccelStructure>(_handle)) {}
+
+	};
+
+	template <>
 	struct Resource<Buffer> {
 		Buffer handle;
 
@@ -126,6 +135,8 @@ namespace d {
 		explicit operator u32() const { return static_cast<Handle>(handle); }
 
 		auto map_and_copy(ByteSpan data, usize offset = 0) const -> void;
+
+		[[nodiscard]] auto gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS;
 
 		[[nodiscard]] auto ibo_view(std::optional<u32> index_offset,
 			u32 num_indices) const
@@ -404,6 +415,7 @@ namespace d {
 	};
 
 	enum struct MemoryUsage {
+		GPU_Writable,
 		GPU,
 		CPU_Readable,
 		Mappable,

@@ -2,13 +2,23 @@
 #include "d/Pipeline.h"
 #include "d/Queue.h"
 #include "d/Stager.h"
+#include "d/RayTracing.h"
 
 #include <glm/glm.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
 #include "tiny_obj_loader.h"
 
-struct Vert;
+struct Vert {
+	glm::vec3 pos;
+	glm::vec3 normal;
+
+	Vert() = default;
+	~Vert() = default;
+
+	Vert(float px, float py, float pz, float nx, float ny, float nz) : pos(px, py, pz), normal(nx, ny, nz) {};
+};
+
 std::tuple<std::vector<Vert>, std::vector<u32>> load_model(const char* file);
 
 int main() {
@@ -30,18 +40,43 @@ int main() {
 	d::InitContext(window, 3);
 
 	auto [verts, indices] = load_model("assets/models/kitten.obj");
+	glm::mat4x3 transform(1);
 
 	auto vert_bytes = ByteSpan(verts);
 	auto indices_bytes = ByteSpan(indices);
+	auto transforms_bytes = ByteSpan(transform);
 
 	using namespace d;
 	auto vbo = c.create_buffer(BufferCreateInfo{ .size = vert_bytes.size(), .usage = MemoryUsage::GPU });
 	auto ibo = c.create_buffer(BufferCreateInfo{ .size = indices_bytes.size(), .usage = MemoryUsage::GPU });
+	auto tbo = c.create_buffer(BufferCreateInfo{ .size = transforms_bytes.size(), .usage = MemoryUsage::GPU });
 
 	Stager stager;
 	stager.stage_buffer(vbo, vert_bytes);
 	stager.stage_buffer(ibo, indices_bytes);
+	stager.stage_buffer(tbo, transforms_bytes);
 	stager.stage_block_until_over();
+
+	Queue general;
+	general.init(QueueType::GENERAL);
+	auto list = general.get_command_list();
+
+	list.record();
+	auto blas = BlasBuilder()
+		.add_triangles(BlasTriangleInfo{
+		.p_transform = tbo.gpu_addr(),
+		.p_vbo = vbo.gpu_addr(),
+		.vertex_count = static_cast<u32>(verts.size()),
+		.vbo_stride = static_cast<u32>(sizeof(Vert)), // hard-coded but C++ gives incomplete type error and I'm lazy as f :)
+		.p_ibo = ibo.gpu_addr(),
+		.index_count = static_cast<u32>(indices.size()),
+		.vert_format = DXGI_FORMAT_R32G32B32_FLOAT,
+		.allow_update = false,
+		})
+		.cmd_build(list, false);
+	list.finish();
+	general.submit_lists({ list });
+	general.block_until_idle();
 
 	c.library.add_shader("shaders/test.hlsl", ShaderType::VERTEX, "test_vs");
 	c.library.add_shader("shaders/test.hlsl", ShaderType::FRAGMENT, "test_fs");
@@ -58,7 +93,6 @@ int main() {
 			.color1 = {0., 1., 0.},
 			.color2 = {1., 0., 0.},
 	};
-
 	Pipeline pl = GraphicsPipelineStream()
 		.default_raster()
 		.set_vertex_shader("test_vs")
@@ -87,14 +121,6 @@ int main() {
 	glfwTerminate();
 	return 0;
 }
-
-struct Vert {
-	glm::vec3 pos;
-	glm::vec3 normal;
-
-	Vert() = default;
-	Vert(float px, float py, float pz, float nx, float ny, float nz) : pos(px, py, pz), normal(nx, ny, nz) {};
-};
 
 [[nodiscard]] auto load_model(const char* file) -> std::tuple<std::vector<Vert>, std::vector<u32>> {
 	std::string inputfile = file;

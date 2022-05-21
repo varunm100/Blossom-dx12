@@ -23,7 +23,7 @@ namespace d {
 
 	struct CommandList {
 		ComPtr<ID3D12CommandAllocator> allocator;
-		ComPtr<ID3D12GraphicsCommandList> handle;
+		ComPtr<ID3D12GraphicsCommandList4> handle;
 
 		CommandList() = default;
 		~CommandList() = default;
@@ -35,10 +35,11 @@ namespace d {
 			usize size, u32 src_offset = 0, u32 dst_offset = 0)
 			->CommandList&;
 
-		auto inject_barrier(Resource<Buffer> buffer, std::tuple<u32, u32> offset_size,
-			D3D12_BARRIER_SYNC after, D3D12_BARRIER_ACCESS access_before, D3D12_BARRIER_ACCESS access_after)->CommandList&;
 
-		auto transition()->CommandList&;
+		auto transition(u32 res_handle, D3D12_RESOURCE_STATES after_state)->CommandList&;
+		auto transition(Resource<Buffer> buffer, D3D12_RESOURCE_STATES after_state)->CommandList&;
+		auto transition(Resource<D2> texture, D3D12_RESOURCE_STATES after_state)->CommandList&;
+
 		auto draw_directs(const DrawDirectsInfo& draw_infos)->CommandList&;
 	};
 

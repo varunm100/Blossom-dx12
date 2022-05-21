@@ -22,23 +22,23 @@ namespace d {
 		return *this;
 	}
 
-	auto CommandList::inject_barrier(Resource<Buffer> buffer, std::tuple<u32, u32> offset_size,
-		D3D12_BARRIER_SYNC after, D3D12_BARRIER_ACCESS access_before, D3D12_BARRIER_ACCESS access_after) -> CommandList& {
-		// TODO fix this shit
-		auto barrier = D3D12_BUFFER_BARRIER{
-			//.SyncBefore = c.res_lib.resource_states[static_cast<u32>(buffer)].state,
-			.SyncAfter = after,
-			.AccessBefore = access_before,
-			.AccessAfter = access_after,
-			.pResource = get_native_res(buffer),
-			.Offset = 0u,
-			.Size = 0u,
-		};
+	auto CommandList::transition(u32 res_handle, D3D12_RESOURCE_STATES after_state) -> CommandList& {
+		auto& state = get_res_state(Resource<Buffer>(res_handle));
+		if (state.state != after_state) {
+			const auto barrier = get_transition(get_native_res(res_handle), state.state, after_state);
+			handle->ResourceBarrier(1, &barrier);
+			state.state = after_state;
+		}
 		return *this;
 	}
 
-	auto CommandList::transition() -> CommandList& {
-		// TODO fix this shit
+	auto CommandList::transition(Resource<Buffer> buffer, D3D12_RESOURCE_STATES after_state) -> CommandList& {
+		transition(static_cast<u32>(buffer), after_state);
+		return *this;
+	}
+
+	auto CommandList::transition(Resource<D2> texture, D3D12_RESOURCE_STATES after_state) -> CommandList& {
+		transition(static_cast<u32>(texture), after_state);
 		return *this;
 	}
 
