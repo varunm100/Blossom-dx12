@@ -13,6 +13,7 @@ namespace d {
 		VERTEX,
 		FRAGMENT,
 		COMPUTE,
+		INCLUDE,
 	};
 
 	struct ShaderEntry {
@@ -24,6 +25,8 @@ namespace d {
 	struct AssetLibrary {
 		ComPtr<IDxcLibrary> dxc_library;
 		ComPtr<IDxcCompiler> dxc_compiler;
+		ComPtr<IDxcUtils> dxc_utils;
+		ComPtr<IDxcIncludeHandler> include_handler;
 
 		std::vector<ShaderEntry> shader_entries;
 		std::unordered_map<std::string, u32> shader_library;

@@ -1,3 +1,5 @@
+#include <glm/gtc/type_ptr.hpp>
+
 #include "d/RayTracing.h"	
 #include "d/Context.h"
 
@@ -31,7 +33,7 @@ namespace d {
 		return *this;
 	}
 
-	auto BlasBuilder::cmd_build(CommandList& cl, bool _allow_update = false) -> Resource<AccelStructure> {
+	auto BlasBuilder::cmd_build(CommandList& cl, bool _allow_update) -> Resource<AccelStructure> {
 		allow_update = _allow_update;
 		const auto flags =
 			allow_update
@@ -73,13 +75,8 @@ namespace d {
 			buildDesc.Inputs.Flags = flags;
 
 		cl.transition(scratch, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
-		//cl.transition(result, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
 		cl.handle->BuildRaytracingAccelerationStructure(&buildDesc, 0, nullptr);
 
-		// Wait for the builder to complete by setting a barrier on the resulting
-		// buffer. This is particularly important as the construction of the top-level
-		// hierarchy may be called right afterwards, before executing the command
-		// list.
 		D3D12_RESOURCE_BARRIER uavBarrier;
 		uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
 		uavBarrier.UAV.pResource = get_native_res(result);
@@ -88,6 +85,73 @@ namespace d {
 
 		return Resource<AccelStructure>(static_cast<u32>(result.handle));
 
+	}
+
+	auto TlasBuilder::add_instance(const TlasInstanceInfo& info) -> TlasBuilder {
+		auto instance_desc = D3D12_RAYTRACING_INSTANCE_DESC{
+			.InstanceID = info.instance_id,
+			.InstanceMask = 0xFF,
+			.InstanceContributionToHitGroupIndex = info.hit_index,
+			.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_FORCE_OPAQUE,
+			.AccelerationStructure = info.blas.gpu_addr(),
+		};
+		memcpy(instance_desc.Transform, glm::value_ptr(info.transform), 3 * 4 * sizeof(float));
+		instances.emplace_back(instance_desc);
+		return *this;
+	}
+
+	auto TlasBuilder::cmd_build(CommandList& list, bool _allow_update) -> Resource<AccelStructure> {
+		allow_update = _allow_update;
+		const auto flags = allow_update ? D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE
+			: D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE;
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS
+			prebuildDesc = {};
+		prebuildDesc.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+		prebuildDesc.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+		prebuildDesc.NumDescs = static_cast<UINT>(instances.size());
+		prebuildDesc.Flags = flags;
+
+		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO info = {};
+
+		c.device->GetRaytracingAccelerationStructurePrebuildInfo(&prebuildDesc, &info);
+
+		info.ResultDataMaxSizeInBytes =
+			ROUND_UP(info.ResultDataMaxSizeInBytes, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+		info.ScratchDataSizeInBytes =
+			ROUND_UP(info.ScratchDataSizeInBytes, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+
+		result_size = info.ResultDataMaxSizeInBytes;
+		scratch_size = info.ScratchDataSizeInBytes;
+		desc_size =
+			ROUND_UP(sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * instances.size(),
+				D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
+
+		instance_buffer = c.create_buffer(BufferCreateInfo{ .size = desc_size, .usage = MemoryUsage::Mappable });
+		instance_buffer.map_and_copy(ByteSpan(instances));
+
+		scratch = c.create_buffer(BufferCreateInfo{ .size = scratch_size, .usage = MemoryUsage::GPU_Writable });
+		Resource<Buffer> result = c.create_buffer(BufferCreateInfo{ .size = result_size, .usage = MemoryUsage::GPU_Writable }, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC buildDesc = {};
+		buildDesc.Inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+		buildDesc.Inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+		buildDesc.Inputs.InstanceDescs = instance_buffer.gpu_addr(),
+			buildDesc.Inputs.NumDescs = static_cast<UINT>(instances.size());
+		buildDesc.DestAccelerationStructureData = { result.gpu_addr()
+		};
+		buildDesc.ScratchAccelerationStructureData = { scratch.gpu_addr(),
+		};
+		buildDesc.SourceAccelerationStructureData = 0;
+		buildDesc.Inputs.Flags = flags;
+
+		list.handle->BuildRaytracingAccelerationStructure(&buildDesc, 0, nullptr);
+
+		D3D12_RESOURCE_BARRIER uavBarrier;
+		uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+		uavBarrier.UAV.pResource = get_native_res(result);
+		uavBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		list.handle->ResourceBarrier(1, &uavBarrier);
+		return Resource<AccelStructure>(static_cast<u32>(result));
 	}
 }
 

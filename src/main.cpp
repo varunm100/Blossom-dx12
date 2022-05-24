@@ -61,25 +61,39 @@ int main() {
 	general.init(QueueType::GENERAL);
 	auto list = general.get_command_list();
 
+	auto blas_info = BlasBuilder();
+	auto tlas_info = TlasBuilder();
+
 	list.record();
-	auto blas = BlasBuilder()
+
+	auto blas = blas_info
 		.add_triangles(BlasTriangleInfo{
 		.p_transform = tbo.gpu_addr(),
 		.p_vbo = vbo.gpu_addr(),
 		.vertex_count = static_cast<u32>(verts.size()),
-		.vbo_stride = static_cast<u32>(sizeof(Vert)), // hard-coded but C++ gives incomplete type error and I'm lazy as f :)
+		.vbo_stride = static_cast<u32>(sizeof(Vert)),
 		.p_ibo = ibo.gpu_addr(),
 		.index_count = static_cast<u32>(indices.size()),
 		.vert_format = DXGI_FORMAT_R32G32B32_FLOAT,
 		.allow_update = false,
-		})
-		.cmd_build(list, false);
+			})
+			.cmd_build(list, false);
+
+	auto tlas = tlas_info.add_instance(TlasInstanceInfo{
+		.transform = glm::mat3x4(1),
+		.instance_id = 0,
+		.hit_index = 0,
+		.blas = blas,
+		}).cmd_build(list, false);
+
 	list.finish();
 	general.submit_lists({ list });
 	general.block_until_idle();
 
-	c.library.add_shader("shaders/test.hlsl", ShaderType::VERTEX, "test_vs");
-	c.library.add_shader("shaders/test.hlsl", ShaderType::FRAGMENT, "test_fs");
+	info_log("Built acceleration structures!");
+
+	c.asset_lib.add_shader("shaders/test.hlsl", d::ShaderType::VERTEX, "test_vs");
+	c.asset_lib.add_shader("shaders/test.hlsl", d::ShaderType::FRAGMENT, "test_fs");
 
 	struct Constants {
 		u32 vbo_index;

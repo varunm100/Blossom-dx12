@@ -5,6 +5,8 @@ namespace d {
 	void AssetLibrary::init() {
 		DX_CHECK(DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&dxc_library)));
 		DX_CHECK(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&dxc_compiler)));
+		DX_CHECK(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&dxc_utils)));
+		DX_CHECK(dxc_utils->CreateDefaultIncludeHandler(&include_handler));
 	}
 
 	const wchar_t* to_wchar(const char* str) {
@@ -23,12 +25,10 @@ namespace d {
 		const wchar_t* path_wc = to_wchar(path);
 		HRESULT hr = dxc_library->CreateBlobFromFile(path_wc, &codePage, &sourceBlob);
 		delete[] path_wc;
-
 		if (FAILED(hr)) {
 			err_log("Could not find file {}", path);
 			return;
 		}
-
 		const std::string p(path);
 		std::string name = p.substr(p.find_last_of("/\\") + 1);
 		std::string e_point;
@@ -68,7 +68,7 @@ namespace d {
 
 		ComPtr<IDxcOperationResult> result{};
 		hr = dxc_compiler->Compile(sourceBlob.Get(), name_wc, entry_point_wc, target_profile, nullptr, 0, nullptr, 0,
-			nullptr, &result);
+			include_handler.Get(), &result);
 		if (SUCCEEDED(hr)) {
 			result->GetStatus(&hr);
 		}
@@ -81,7 +81,7 @@ namespace d {
 				ComPtr<IDxcBlobEncoding> errorsBlob;
 				hr = result->GetErrorBuffer(&errorsBlob);
 				if (SUCCEEDED(hr) && errorsBlob) {
-					err_log("Compilation error, {}: {}", asset_name, static_cast<const char*>(errorsBlob->GetBufferPointer()));
+					err_log("Compilation error: {}", static_cast<const char*>(errorsBlob->GetBufferPointer()));
 					delete[] name_wc;
 					delete[] entry_point_wc;
 					return;

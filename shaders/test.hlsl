@@ -1,3 +1,4 @@
+#include "C:\Users\varun\programming\Blossom\shaders\common.hlsli"
 
 struct DrawConstants
 {
@@ -31,5 +32,5 @@ VS_OUT VSMain(uint vert_id : SV_VertexID) {
 
 float4 PSMain(VS_OUT input) : SV_TARGET {
     //return uv.x/1280. > 0.5 ? float4(DrawConsts.color1, 1.0) : float4(DrawConsts.color2, 1.0);
-    return input.n;
+    return input.n * SOME_SHIT;
 }

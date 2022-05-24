@@ -27,14 +27,14 @@ namespace d {
 	}
 
 	auto GraphicsPipelineStream::set_vertex_shader(const char* label) -> GraphicsPipelineStream& {
-		ShaderEntry& vs = c.library.get_shader_asset(label);
+		ShaderEntry& vs = c.asset_lib.get_shader_asset(label);
 		desc.VS.pShaderBytecode = vs.code->GetBufferPointer();
 		desc.VS.BytecodeLength = vs.code->GetBufferSize();
 		return *this;
 	}
 
 	auto GraphicsPipelineStream::set_fragment_shader(const char* label) -> GraphicsPipelineStream& {
-		ShaderEntry& fs = c.library.get_shader_asset(label);
+		ShaderEntry& fs = c.asset_lib.get_shader_asset(label);
 		desc.PS.pShaderBytecode = fs.code->GetBufferPointer();
 		desc.PS.BytecodeLength = fs.code->GetBufferSize();
 		return *this;

@@ -123,6 +123,9 @@ namespace d {
 		Resource() = default;
 		explicit Resource(u32 _handle) : handle(static_cast<AccelStructure>(_handle)) {}
 
+		explicit operator u32() const { return static_cast<Handle>(handle); }
+
+		[[nodiscard]] auto gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS;
 	};
 
 	template <>

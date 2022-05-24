@@ -377,7 +377,11 @@ namespace d {
 			: heap->push_back_get_handle(*this);
 	}
 
-	auto Resource<Buffer>::map_and_copy(ByteSpan data, usize offset) const -> void {
+		auto Resource<AccelStructure>::gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS {
+			return get_native_res(*this)->GetGPUVirtualAddress();
+		}
+
+		auto Resource<Buffer>::map_and_copy(ByteSpan data, usize offset) const -> void {
 		void* mapped;
 		auto res = d::get_native_res(static_cast<u32>(handle));
 		DX_CHECK(res->Map(0, nullptr, &mapped));

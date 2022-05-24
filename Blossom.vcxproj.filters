@@ -432,6 +432,8 @@
     </None>
     <None Include="packages.config" />
     <None Include="shaders\test.hlsl" />
+    <None Include="d\src\.clang-tidy" />
+    <None Include="shaders\common.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="d\include\directx\d3d12.idl">

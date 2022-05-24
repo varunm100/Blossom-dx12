@@ -79,7 +79,7 @@ namespace d {
 
 		ComPtr<D3D12MA::Allocator> allocator;
 		Swapchain swap_chain;
-		AssetLibrary library;
+		AssetLibrary asset_lib;
 		ResourceLibrary res_lib;
 
 		Context() = default;

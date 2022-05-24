@@ -95,7 +95,7 @@ namespace d {
 		async_transfer_q.init(QueueType::ASYNC_TRANSFER);
 		async_compute_q.init(QueueType::ASYNC_COMPUTE);
 
-		library.init();
+		asset_lib.init();
 
 		c.res_lib.storage.init(100);
 
