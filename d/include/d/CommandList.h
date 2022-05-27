@@ -18,7 +18,7 @@ namespace d {
 	struct DrawDirectsInfo {
 		D3D12_CPU_DESCRIPTOR_HANDLE output;
 		std::initializer_list<DirectDrawInfo> draw_infos;
-		Pipeline& pl;
+		GraphicsPipeline& pl;
 	};
 
 	struct CommandList {

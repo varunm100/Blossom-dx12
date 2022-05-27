@@ -61,6 +61,9 @@ namespace d {
 		case ShaderType::COMPUTE:
 			target_profile = L"cs_6_6";
 			break;
+		case ShaderType::LIBRARY:
+			target_profile = L"lib_6_6";
+			break;
 		}
 
 		const wchar_t* name_wc = to_wchar(name.c_str());

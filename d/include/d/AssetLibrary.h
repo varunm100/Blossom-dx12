@@ -13,7 +13,7 @@ namespace d {
 		VERTEX,
 		FRAGMENT,
 		COMPUTE,
-		INCLUDE,
+		LIBRARY,
 	};
 
 	struct ShaderEntry {

@@ -1,5 +1,4 @@
 #include "d/Context.h"
-#include "d/Pipeline.h"
 #include "d/Queue.h"
 #include "d/Stager.h"
 #include "d/RayTracing.h"
@@ -107,7 +106,7 @@ int main() {
 			.color1 = {0., 1., 0.},
 			.color2 = {1., 0., 0.},
 	};
-	Pipeline pl = GraphicsPipelineStream()
+	GraphicsPipeline pl = GraphicsPipelineStream()
 		.default_raster()
 		.set_vertex_shader("test_vs")
 		.set_fragment_shader("test_fs")
