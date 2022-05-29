@@ -28,6 +28,7 @@
     <ClCompile Include="d\src\RayTracing.cpp" />
     <ClCompile Include="d\src\Resource.cpp" />
     <ClCompile Include="d\src\Stager.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -159,6 +160,7 @@
     <ClInclude Include="d\include\d\Stager.h" />
     <ClInclude Include="d\include\d\stdafx.h" />
     <ClInclude Include="d\include\d\Types.h" />
+    <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\cgltf.h" />
     <ClInclude Include="include\tiny_obj_loader.h" />
   </ItemGroup>

@@ -322,10 +322,12 @@ namespace d {
 			}
 			else { // DEPTH TEXTURE
 				assert_log(0, "Cannot create depth/stencil view from 3D texture");
+				return D3D12_SHADER_RESOURCE_VIEW_DESC{};
 			}
 		}
 		else {
 			assert_log(0, "Unexpected Resource Type");
+			return D3D12_SHADER_RESOURCE_VIEW_DESC{};
 		}
 	}
 

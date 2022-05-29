@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 
 #define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
+#include "Camera.h"
 #include "tiny_obj_loader.h"
 
 struct Vert {
@@ -31,13 +32,30 @@ int main() {
 	if (window == nullptr)
 		throw std::exception("glfwCreateWindow failed");
 
-	glfwSetKeyCallback(
-		window, [](GLFWwindow* w, const int key, int, const int action, int) {
-			if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-				glfwSetWindowShouldClose(w, true);
-			}
-		});
 	d::InitContext(window, 3);
+
+	Camera camera(glm::vec3(0., 0., 1.5), glm::vec3(0.), 30.);
+	// setup camera
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, camera.focused ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+		glfwSetWindowUserPointer(window, &camera);
+		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x_pos, double y_pos) {
+			auto* c = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+			c->mouse_callback(window, x_pos, y_pos);
+			});
+		glfwSetKeyCallback(
+			window, [](GLFWwindow* window, const int key, int, const int action, int) {
+				auto* c = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+				if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+					glfwSetInputMode(window, GLFW_CURSOR, c->focused ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+					c->focused = !c->focused;
+				}
+				else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+					glfwSetWindowShouldClose(window, true);
+				}
+			}
+		);
+	}
 
 	auto [verts, indices] = load_model("assets/models/kitten.obj");
 	glm::mat3x4 transform = {
@@ -65,12 +83,9 @@ int main() {
 	general.init(QueueType::GENERAL);
 	auto list = general.get_command_list();
 
-	auto blas_info = BlasBuilder();
-	auto tlas_info = TlasBuilder();
-
 	list.record();
 
-	auto blas = blas_info
+	auto blas = BlasBuilder()
 		.add_triangles(BlasTriangleInfo{
 		.p_transform = tbo.gpu_addr(),
 		.p_vbo = vbo.gpu_addr(),
@@ -82,7 +97,7 @@ int main() {
 		.allow_update = false,
 			})
 			.cmd_build(list, false);
-	auto tlas = tlas_info.add_instance(TlasInstanceInfo{
+	auto tlas = TlasBuilder().add_instance(TlasInstanceInfo{
 		.transform = transform,
 		.instance_id = 0,
 		.hit_index = 0,
@@ -106,17 +121,18 @@ int main() {
 	struct RTConstants {
 		u32 tlas;
 		u32 output_image;
+		u32 camera_index;
 	};
 	auto tlas_cache = tlas.view().desc_index();
 	auto tracing_consts = RTConstants{
 		.tlas = tlas.view().desc_index(),
 		.output_image = rt_output.read_write_view(0).desc_index(),
+		.camera_index = camera.get_data_index(),
 	};
 
 	c.asset_lib.add_shader("shaders/RT.hlsl", d::ShaderType::LIBRARY, "test_rt_lib");
 
-	auto rt_pl_stream = RayTracingPipelineStream();
-	auto rt_pl = rt_pl_stream
+	auto rt_pl = RayTracingPipelineStream()
 		.set_library("test_rt_lib", { L"RayGen", L"ClosestHit", L"Miss" })
 		.add_hit_group(L"main", L"ClosestHit")
 		.add_miss_shader(L"Miss")
@@ -124,18 +140,33 @@ int main() {
 		.config_shader(16u, 8u, 1)
 		.build(sizeof(RTConstants) / 4);
 
+	float prev_time = static_cast<float>(glfwGetTime());
+	float dt = 0.;
 	while (!glfwWindowShouldClose(window)) {
-		const auto [out_handle, cl] = c.BeginRendering();
-		cl.trace(TraceInfo{
-			.push_constants = ByteSpan(tracing_consts),
-			.output = rt_output,
-			.extent = TextureExtent::full_swap_chain(),
-			.pl = rt_pl,
-			})
-			.transition(rt_output, D3D12_RESOURCE_STATE_COPY_SOURCE)
-			.transition(out_handle, D3D12_RESOURCE_STATE_COPY_DEST)
-			.copy_image(rt_output, out_handle);
-		c.EndRendering();
+		// physics
+		{
+			auto current_time = static_cast<float>(glfwGetTime());
+			dt = current_time - prev_time;
+			prev_time = current_time;
+			camera.update(window, dt);
+		}
+		// rendering
+		auto t0 = glfwGetTime() * 1e3;
+		{
+			const auto [out_handle, cl] = c.BeginRendering();
+			cl.trace(TraceInfo{
+				.push_constants = ByteSpan(tracing_consts),
+				.output = rt_output,
+				.extent = TextureExtent::full_swap_chain(),
+				.pl = rt_pl,
+				})
+				.transition(rt_output, D3D12_RESOURCE_STATE_COPY_SOURCE)
+				.transition(out_handle, D3D12_RESOURCE_STATE_COPY_DEST)
+				.copy_image(rt_output, out_handle);
+			c.EndRendering();
+		}
+		auto t1 = glfwGetTime() * 1e3;
+		glfwSetWindowTitle(window, std::format("frame time: {:.2f} ms", t1-t0).c_str());
 		glfwPollEvents();
 	}
 	glfwDestroyWindow(window);

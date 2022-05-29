@@ -119,7 +119,7 @@ namespace d {
 	auto RayTracingPipelineStream::build(u32 num_dword_consts)-> RayTracingPipeline {
 		u32 sub_object_count =
 			1 +									// the one DXIL library
-			hit_groups.size() + // hit group declarations
+			static_cast<u32>(hit_groups.size()) + // hit group declarations
 			1 +									// shader configuration
 			1 +									// shader payload
 			0 +									// 0 actual root signatures
@@ -185,26 +185,18 @@ namespace d {
 		}
 		const WCHAR** shader_exports = exported_symbol_pointers.data();
 
-		// root signature associations - NONE since we aren't going to use that
-
-	// Add a subobject for the association between shaders and the payload
 		D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION shaderPayloadAssociation = {};
 		shaderPayloadAssociation.NumExports = static_cast<UINT>(exported_symbols.size());
 		shaderPayloadAssociation.pExports = shader_exports;
 
-		// Associate the set of shaders with the payload defined in the previous subobject
 		shaderPayloadAssociation.pSubobjectToAssociate = &sub_objects[(current_index - 1)];
 
-		// Create and store the payload association object
 		D3D12_STATE_SUBOBJECT shaderPayloadAssociationObject = {};
 		shaderPayloadAssociationObject.Type = D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION;
 		shaderPayloadAssociationObject.pDesc = &shaderPayloadAssociation;
 		sub_objects[current_index++] = shaderPayloadAssociationObject;
 
-		// NO ASSOCIATIONS DONE HERE
-
 		auto rt_pipeline = RayTracingPipeline{};
-		// create empty global root signature
 		{
 			ComPtr<ID3DBlob> rootSignatureBlob;
 			ComPtr<ID3DBlob> errorBlob;
@@ -263,24 +255,22 @@ namespace d {
 
 		D3D12_STATE_OBJECT_DESC pipelineDesc = {};
 		pipelineDesc.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
-		pipelineDesc.NumSubobjects = current_index; // static_cast<UINT>(subobjects.size());
+		pipelineDesc.NumSubobjects = current_index;
 		pipelineDesc.pSubobjects = sub_objects.data();
 
-		// Create the state object
 		DX_CHECK(c.device->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&rt_pipeline.pso)));
 
-		// create shader binding table storage
 		auto& sbt = rt_pipeline.sbt;
 		ComPtr<ID3D12StateObjectProperties> props;
 		DX_CHECK(rt_pipeline.pso->QueryInterface(IID_PPV_ARGS(&props)));
 		
 		assert(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES == 32u);
 		constexpr usize ID_SIZE = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-		sbt.num_hit_groups = hit_groups.size();
-		sbt.num_miss_entries = miss_shaders.size();
-		sbt.num_callable_entries = callable_shaders.size();
+		sbt.num_hit_groups = static_cast<u32>(hit_groups.size());
+		sbt.num_miss_entries = static_cast<u32>(miss_shaders.size());
+		sbt.num_callable_entries = static_cast<u32>(callable_shaders.size());
 		//									RAY GEN				|					HIT GROUP TABLE		 				|				MISS SHADER TABLE		        |            CALLABLE SHADER TABLE							|
-		usize padding = hit_groups.size() % 2 ? ID_SIZE : 0;
+		usize padding = hit_groups.size() % 2 ? ID_SIZE : 0u;
 		usize sbt_size = 2 * ID_SIZE + sbt.num_hit_groups * ID_SIZE + padding + sbt.num_miss_entries * ID_SIZE;
 
 		std::vector<u8> sbt_data(sbt_size);
@@ -288,26 +278,18 @@ namespace d {
 		std::fill_n(sbt_data.data(), sbt_size, ~0);
 		u32 current_byte = 0u;
 		memcpy(sbt_data.data() + current_byte, props->GetShaderIdentifier(ray_gen_shader.c_str()), ID_SIZE);
-		current_byte += 2 * ID_SIZE;
+		current_byte += static_cast<u32>(2 * ID_SIZE);
 		for(const auto& hit_group : hit_groups) {
-			//if (!hit_group.intersection.empty()) assert(props->GetShaderIdentifier(hit_group.intersection.c_str())), memcpy(sbt_data + current_byte, props->GetShaderIdentifier(hit_group.intersection.c_str()), ID_SIZE);
-			//current_byte += ID_SIZE;
-
-			//if (!hit_group.any_hit.empty()) assert(props->GetShaderIdentifier(hit_group.any_hit.c_str())), memcpy(sbt_data + current_byte, props->GetShaderIdentifier(hit_group.any_hit.c_str()), ID_SIZE);
-			//current_byte += ID_SIZE;
-
-			//if (!hit_group.closest_hit.empty()) assert(props->GetShaderIdentifier(hit_group.closest_hit.c_str())), memcpy(sbt_data + current_byte, props->GetShaderIdentifier(hit_group.closest_hit.c_str()), ID_SIZE);
-			//current_byte += ID_SIZE;
 			assert(props->GetShaderIdentifier(hit_group.group_name.c_str()));
 			memcpy(sbt_data.data() + current_byte, props->GetShaderIdentifier(hit_group.group_name.c_str()), ID_SIZE);
-			current_byte += ID_SIZE;
+			current_byte += static_cast<u32>(ID_SIZE);
 		}
-		current_byte += padding;
+		current_byte += static_cast<u32>(padding);
 		for(const auto& miss_shader : miss_shaders) {
 			if (!miss_shader.empty())
 				assert(props->GetShaderIdentifier(miss_shader.c_str())), memcpy(sbt_data.data() + current_byte,
 				                                                                props->GetShaderIdentifier(miss_shader.c_str()),
-				                                                                ID_SIZE), current_byte += ID_SIZE;
+				                                                                ID_SIZE), current_byte += static_cast<u32>(ID_SIZE);
 		}
 
 		// TODO: callable shaders?

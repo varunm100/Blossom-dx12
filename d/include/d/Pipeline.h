@@ -30,7 +30,7 @@ namespace d {
 		GraphicsPipeline() = default;
 		~GraphicsPipeline() = default;
 
-		auto get_native() const->ID3D12PipelineState*;
+		[[nodiscard]] auto get_native() const->ID3D12PipelineState*;
 	};
 	// RAY GENERATION | HIT GROUP TABLE ENTRIES ... | MISS GROUP TABLE ENTRIES ... |
 	struct ShaderBindingTable {
@@ -49,12 +49,12 @@ namespace d {
 		ComPtr<ID3D12StateObject> pso;
 		ComPtr<ID3D12RootSignature> global_root_signature;
 		ComPtr<ID3D12RootSignature> _dummy_root_signature;
-		ShaderBindingTable sbt;
+		ShaderBindingTable sbt{};
 
 		RayTracingPipeline() = default;
 		~RayTracingPipeline() = default;
 
-		auto get_native() const->ID3D12StateObject*;
+		[[nodiscard]] auto get_native() const->ID3D12StateObject*;
 	};
 
 	struct RayTracingPipelineStream {
@@ -63,7 +63,7 @@ namespace d {
 			std::wstring closest_hit;
 			std::wstring any_hit;
 			std::wstring intersection;
-			D3D12_HIT_GROUP_DESC native_desc;
+			D3D12_HIT_GROUP_DESC native_desc{};
 
 			HitGroup(std::wstring _group_name, std::wstring _closest_hit,
 				std::wstring _any_hit = L"", std::wstring _intersection = L"") :
@@ -90,14 +90,14 @@ namespace d {
 		std::wstring ray_gen_shader;
 		std::vector<std::wstring> miss_shaders;
 		std::vector<std::wstring> callable_shaders;
-		usize max_payload_size;
-		usize max_attribute_size;
-		usize max_recursion_depth;
+		usize max_payload_size{};
+		usize max_attribute_size{8};
+		u32 max_recursion_depth{1};
 
 		// DXIL library
 		std::string library_label;
 		std::vector<std::wstring> exported_symbols;
-		D3D12_DXIL_LIBRARY_DESC library_desc;
+		D3D12_DXIL_LIBRARY_DESC library_desc{};
 
 		RayTracingPipelineStream() = default;
 		~RayTracingPipelineStream() = default;
@@ -108,8 +108,6 @@ namespace d {
 		auto add_callable_shader(std::wstring _callable_shader_name) -> RayTracingPipelineStream;
 		auto set_ray_gen_shader(std::wstring _ray_gen_shader_name) -> RayTracingPipelineStream;
 		auto config_shader(usize _max_payload_size, usize _max_attribute_size, u32 _max_recursion_depth)->RayTracingPipelineStream;
-
-		auto default_stream()->RayTracingPipelineStream;
 
 		auto build(u32 num_dword_consts)->RayTracingPipeline;
 	};
