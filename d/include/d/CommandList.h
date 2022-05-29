@@ -5,6 +5,8 @@
 #include "d/Types.h"
 #include "d/stdafx.h"
 
+#include <glm/glm.hpp>
+
 namespace d {
 
 	struct DirectDrawInfo {
@@ -21,6 +23,13 @@ namespace d {
 		GraphicsPipeline& pl;
 	};
 
+	struct TraceInfo {
+		ByteSpan push_constants;
+		Resource<D2> output;
+		TextureExtent extent;
+		RayTracingPipeline& pl;
+	};
+
 	struct CommandList {
 		ComPtr<ID3D12CommandAllocator> allocator;
 		ComPtr<ID3D12GraphicsCommandList4> handle;
@@ -35,12 +44,15 @@ namespace d {
 			usize size, u32 src_offset = 0, u32 dst_offset = 0)
 			->CommandList&;
 
+		auto clear_image(Resource<D2> image, float color[4])->CommandList&;
+		auto copy_image(Resource<D2> src, Resource<D2> dst)->CommandList&;
 
 		auto transition(u32 res_handle, D3D12_RESOURCE_STATES after_state)->CommandList&;
 		auto transition(Resource<Buffer> buffer, D3D12_RESOURCE_STATES after_state)->CommandList&;
 		auto transition(Resource<D2> texture, D3D12_RESOURCE_STATES after_state)->CommandList&;
 
 		auto draw_directs(const DrawDirectsInfo& draw_infos)->CommandList&;
+		auto trace(const TraceInfo& trace_info) ->CommandList&;
 	};
 
 } // namespace d

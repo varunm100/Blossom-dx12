@@ -15,6 +15,10 @@ struct ByteSpan : std::span<const std::byte> {
 		: std::span<const std::byte>(std::as_bytes(std::span{ t })) {}
 
 	template <typename T>
+	ByteSpan(const T* ptr, u32 num_elements)
+		: std::span<const std::byte>(std::as_bytes(std::span{ ptr, num_elements })) {}
+
+	template <typename T>
 		requires std::is_trivially_copyable_v<T> ByteSpan(const T& t)
 	: std::span<const std::byte>(std::as_bytes(std::span{ &t, 1 })) {}
 

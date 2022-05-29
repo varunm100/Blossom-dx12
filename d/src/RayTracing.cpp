@@ -95,7 +95,7 @@ namespace d {
 			.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_FORCE_OPAQUE,
 			.AccelerationStructure = info.blas.gpu_addr(),
 		};
-		memcpy(instance_desc.Transform, glm::value_ptr(info.transform), 3 * 4 * sizeof(float));
+		memcpy(instance_desc.Transform, glm::value_ptr(info.transform), sizeof(glm::mat3x4));
 		instances.emplace_back(instance_desc);
 		return *this;
 	}
@@ -130,7 +130,7 @@ namespace d {
 		instance_buffer.map_and_copy(ByteSpan(instances));
 
 		scratch = c.create_buffer(BufferCreateInfo{ .size = scratch_size, .usage = MemoryUsage::GPU_Writable });
-		Resource<Buffer> result = c.create_buffer(BufferCreateInfo{ .size = result_size, .usage = MemoryUsage::GPU_Writable }, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+		const Resource<Buffer> result = c.create_buffer(BufferCreateInfo{ .size = result_size, .usage = MemoryUsage::GPU_Writable }, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
 
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC buildDesc = {};
 		buildDesc.Inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;

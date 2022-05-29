@@ -57,8 +57,5 @@ namespace d {
 		auto cmd_build(CommandList& list, bool _allow_update=false) -> Resource<AccelStructure>;
 	};
 
-	struct SBTBuilder {
-	};
-
 }
 

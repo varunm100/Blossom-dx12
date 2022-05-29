@@ -22,6 +22,17 @@ namespace d {
 		return *this;
 	}
 
+	auto CommandList::copy_image(Resource<D2> src, Resource<D2> dst)-> CommandList& {
+		handle->CopyResource(get_native_res(dst), get_native_res(src));
+		return *this;
+	}
+
+	auto CommandList::clear_image(Resource<D2> image, float color[4]) -> CommandList& {
+		auto h = image.rtv_view({}).desc_handle();
+		handle->ClearRenderTargetView(h, color, 0, nullptr);
+		return *this;
+	}
+
 	auto CommandList::transition(u32 res_handle, D3D12_RESOURCE_STATES after_state) -> CommandList& {
 		auto& state = get_res_state(Resource<Buffer>(res_handle));
 		if (state.state != after_state) {
@@ -70,6 +81,32 @@ namespace d {
 					draw_info.start_vertex.value_or(0u), 0);
 			}
 		}
+		return *this;
+	}
+
+	auto CommandList::trace(const TraceInfo& trace_info) -> CommandList& {
+		handle->SetPipelineState1(trace_info.pl.get_native());
+		handle->SetDescriptorHeaps(1, c.res_lib.storage.bindable_desc_heap.heap.GetAddressOf());
+		handle->SetComputeRootSignature(trace_info.pl.global_root_signature.Get());
+		handle->SetComputeRoot32BitConstants(0, static_cast<UINT>(trace_info.push_constants.size() / 4), trace_info.push_constants.data(), 0);
+		auto desc = D3D12_DISPATCH_RAYS_DESC{
+			.RayGenerationShaderRecord = trace_info.pl.sbt.p_ray_gen,
+			.MissShaderTable = trace_info.pl.sbt.p_miss_group_section,
+			.HitGroupTable = trace_info.pl.sbt.p_hit_group_section,
+			//.CallableShaderTable = 
+			.Width = trace_info.extent.width,
+			.Height = trace_info.extent.height,
+			.Depth = trace_info.extent.depth,
+		};
+		transition(trace_info.output, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+
+		handle->DispatchRays(&desc);
+		D3D12_RESOURCE_BARRIER uavBarrier;
+		uavBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+		uavBarrier.UAV.pResource = get_native_res(trace_info.output);
+		uavBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+		handle->ResourceBarrier(1, &uavBarrier);
+
 		return *this;
 	}
 } // namespace d

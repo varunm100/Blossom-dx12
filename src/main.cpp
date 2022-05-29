@@ -15,7 +15,8 @@ struct Vert {
 	Vert() = default;
 	~Vert() = default;
 
-	Vert(float px, float py, float pz, float nx, float ny, float nz) : pos(px, py, pz), normal(nx, ny, nz) {};
+	//Vert(float px, float py, float pz, float nx, float ny, float nz) : pos(px, py, pz), normal(nx, ny, nz) {};
+	Vert(float px, float py, float pz) : pos(px, py, pz) {}
 };
 
 std::tuple<std::vector<Vert>, std::vector<u32>> load_model(const char* file);
@@ -39,7 +40,11 @@ int main() {
 	d::InitContext(window, 3);
 
 	auto [verts, indices] = load_model("assets/models/kitten.obj");
-	glm::mat4x3 transform(1);
+	glm::mat3x4 transform = {
+		{1., 0., 0., 0.},
+		{0., 1., 0., 0.},
+		{0., 0., 1., 0.},
+	};
 
 	auto vert_bytes = ByteSpan(verts);
 	auto indices_bytes = ByteSpan(indices);
@@ -77,9 +82,8 @@ int main() {
 		.allow_update = false,
 			})
 			.cmd_build(list, false);
-
 	auto tlas = tlas_info.add_instance(TlasInstanceInfo{
-		.transform = glm::mat3x4(1),
+		.transform = transform,
 		.instance_id = 0,
 		.hit_index = 0,
 		.blas = blas,
@@ -89,44 +93,48 @@ int main() {
 	general.submit_lists({ list });
 	general.block_until_idle();
 
+
 	info_log("Built acceleration structures!");
 
-	c.asset_lib.add_shader("shaders/test.hlsl", d::ShaderType::VERTEX, "test_vs");
-	c.asset_lib.add_shader("shaders/test.hlsl", d::ShaderType::FRAGMENT, "test_fs");
+	auto rt_output = c.create_texture_2d(TextureCreateInfo{
+		.format = c.swap_chain.format,
+		.dim = TextureDimension::D2,
+		.extent = TextureExtent::full_swap_chain(),
+		.usage = TextureUsage::SHADER_READ_WRITE_ATOMIC
+		});
 
-	struct Constants {
-		u32 vbo_index;
-		float color1[3];
-		float color2[3];
+	struct RTConstants {
+		u32 tlas;
+		u32 output_image;
+	};
+	auto tlas_cache = tlas.view().desc_index();
+	auto tracing_consts = RTConstants{
+		.tlas = tlas.view().desc_index(),
+		.output_image = rt_output.read_write_view(0).desc_index(),
 	};
 
-	auto draw_consts = Constants{
-			.vbo_index = vbo.read_view(true, {}, static_cast<u32>(vert_bytes.size() / sizeof(u32)), {})
-											.desc_index(),
-			.color1 = {0., 1., 0.},
-			.color2 = {1., 0., 0.},
-	};
-	GraphicsPipeline pl = GraphicsPipelineStream()
-		.default_raster()
-		.set_vertex_shader("test_vs")
-		.set_fragment_shader("test_fs")
-		.build(true, sizeof(Constants) / sizeof(u32));
+	c.asset_lib.add_shader("shaders/RT.hlsl", d::ShaderType::LIBRARY, "test_rt_lib");
+
+	auto rt_pl_stream = RayTracingPipelineStream();
+	auto rt_pl = rt_pl_stream
+		.set_library("test_rt_lib", { L"RayGen", L"ClosestHit", L"Miss" })
+		.add_hit_group(L"main", L"ClosestHit")
+		.add_miss_shader(L"Miss")
+		.set_ray_gen_shader(L"RayGen")
+		.config_shader(16u, 8u, 1)
+		.build(sizeof(RTConstants) / 4);
 
 	while (!glfwWindowShouldClose(window)) {
-		// handle input
 		const auto [out_handle, cl] = c.BeginRendering();
-		auto draw_info0 = DirectDrawInfo{
-			//.start_index = 0,
-			.index_count = static_cast<u32>(indices_bytes.size() / sizeof(u32)),
-			//.start_vertex = 0,
-			.ibo = ibo,
-			.push_constants = ByteSpan(draw_consts),
-		};
-		cl.draw_directs(DrawDirectsInfo{
-				.output = out_handle.rtv_view({}).desc_handle(),
-				.draw_infos = {draw_info0},
-				.pl = pl,
-			});
+		cl.trace(TraceInfo{
+			.push_constants = ByteSpan(tracing_consts),
+			.output = rt_output,
+			.extent = TextureExtent::full_swap_chain(),
+			.pl = rt_pl,
+			})
+			.transition(rt_output, D3D12_RESOURCE_STATE_COPY_SOURCE)
+			.transition(out_handle, D3D12_RESOURCE_STATE_COPY_DEST)
+			.copy_image(rt_output, out_handle);
 		c.EndRendering();
 		glfwPollEvents();
 	}
@@ -170,7 +178,8 @@ int main() {
 				tinyobj::real_t nx = attrib.normals[3 * idx.normal_index + 0];
 				tinyobj::real_t ny = attrib.normals[3 * idx.normal_index + 1];
 				tinyobj::real_t nz = attrib.normals[3 * idx.normal_index + 2];
-				verts[idx.vertex_index] = Vert(vx, vy, vz, nx, ny, nz);
+				//verts[idx.vertex_index] = Vert(vx, vy, vz, nx, ny, nz);
+				verts[idx.vertex_index] = Vert(vx, vy, vz);
 				indices.emplace_back(idx.vertex_index);
 
 				if (idx.texcoord_index >= 0) {

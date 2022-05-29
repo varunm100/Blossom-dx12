@@ -92,8 +92,15 @@ namespace d {
 		return Resource<Buffer>(handle);
 	}
 
+	[[nodiscard]] auto TextureExtent::full_swap_chain() -> TextureExtent {
+		return TextureExtent{
+			.width = c.swap_chain.width,
+			.height = c.swap_chain.height,
+		};
+	}
+
+
 	Resource<D2> Context::create_texture_2d(TextureCreateInfo&& texture_info) {
-		auto desc = D3D12_RESOURCE_DESC{};
 		D3D12_RESOURCE_FLAGS res_flags = D3D12_RESOURCE_FLAG_NONE;
 		if (texture_info.usage == TextureUsage::RENDER_TARGET) {
 			res_flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
@@ -105,23 +112,29 @@ namespace d {
 			res_flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 		}
 		// TODO: mip levels hard coded right now :(
-		desc = CD3DX12_RESOURCE_DESC::Tex2D(
+		auto desc = CD3DX12_RESOURCE_DESC::Tex2D(
 			texture_info.format, texture_info.extent.width,
-			texture_info.extent.height, texture_info.extent.array_size, 0, 1, 0,
+			texture_info.extent.height, 1, 1, 1, 0,
 			res_flags);
+		
 
 		ComPtr<D3D12MA::Allocation> allocation;
 		ComPtr<ID3D12Resource> resource;
 
-		D3D12MA::ALLOCATION_DESC allocation_desc = {};
-		D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_COPY_DEST;
+		// bruh lol
+		const D3D12MA::ALLOCATION_DESC allocation_desc = {
+			.HeapType = D3D12_HEAP_TYPE_DEFAULT,
+		};
+		const D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_GENERIC_READ;
 
 		DX_CHECK(allocator->CreateResource(&allocation_desc, &desc, state, nullptr,
 			&allocation, IID_PPV_ARGS(&resource)));
 
-		u32 handle = RegisterResource(resource, allocation);
-
-		return Resource<D2>(handle);
+		const u32 handle = RegisterResource(resource, allocation);
+		auto res = Resource<D2>(handle);
+		auto& s = get_res_state(res);
+		s.state = state;
+		return res;
 	}
 
 	std::variant<D3D12_SHADER_RESOURCE_VIEW_DESC, D3D12_UNORDERED_ACCESS_VIEW_DESC>
@@ -336,6 +349,14 @@ namespace d {
 		};
 	}
 
+	[[nodiscard]] auto AccelerationStructureViewInfo::desc_index() const->u32 {
+		auto& heap = c.res_lib.storage.bindable_desc_heap;
+		auto& lib = c.res_lib;
+		return lib.acceleration_structure_cache.contains(*this)
+			? heap.get_index_of(lib.acceleration_structure_cache[*this])
+			: heap.push_back(*this);
+	};
+
 	[[nodiscard]] auto ResourceViewInfo::desc_index() const -> u32 {
 		auto* heap = &c.res_lib.storage.bindable_desc_heap;
 		auto& lib = c.res_lib;
@@ -377,11 +398,11 @@ namespace d {
 			: heap->push_back_get_handle(*this);
 	}
 
-		auto Resource<AccelStructure>::gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS {
-			return get_native_res(*this)->GetGPUVirtualAddress();
-		}
+	auto Resource<AccelStructure>::gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS {
+		return get_native_res(*this)->GetGPUVirtualAddress();
+	}
 
-		auto Resource<Buffer>::map_and_copy(ByteSpan data, usize offset) const -> void {
+	auto Resource<Buffer>::map_and_copy(ByteSpan data, usize offset) const -> void {
 		void* mapped;
 		auto res = d::get_native_res(static_cast<u32>(handle));
 		DX_CHECK(res->Map(0, nullptr, &mapped));
@@ -391,6 +412,21 @@ namespace d {
 
 	[[nodiscard]] auto Resource<Buffer>::gpu_addr() const ->D3D12_GPU_VIRTUAL_ADDRESS {
 		return get_native_res(*this)->GetGPUVirtualAddress();
+	}
+
+	[[nodiscard]] auto Resource<Buffer>::gpu_addr_range(usize size, usize start_offset) const -> D3D12_GPU_VIRTUAL_ADDRESS_RANGE {
+		return D3D12_GPU_VIRTUAL_ADDRESS_RANGE{
+			.StartAddress = gpu_addr() + start_offset,
+			.SizeInBytes = size,
+		};
+	}
+
+	[[nodiscard]] auto Resource<Buffer>::gpu_strided_addr_range(usize stride, usize size, usize start_offset) const -> D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE {
+		return D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE{
+			.StartAddress = gpu_addr() + start_offset,
+			.SizeInBytes = size,
+			.StrideInBytes = stride,
+		};
 	}
 
 	[[nodiscard]] auto Resource<Buffer>::ibo_view(std::optional<u32> index_offset,

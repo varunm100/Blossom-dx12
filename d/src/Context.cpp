@@ -186,23 +186,36 @@ namespace d {
 		size = 0;
 	}
 
-	u32 DescHeap::get_index_of(D3D12_CPU_DESCRIPTOR_HANDLE handle) {
+	auto DescHeap::get_index_of(D3D12_CPU_DESCRIPTOR_HANDLE handle) -> u32 {
 		return static_cast<u32>((handle.ptr - start.ptr) / stride);
 	}
 
-	u32 DescHeap::push_back(const ResourceViewInfo& res_info) {
+	auto DescHeap::push_back(const AccelerationStructureViewInfo& info) -> u32{
+		auto desc = D3D12_SHADER_RESOURCE_VIEW_DESC{
+			.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
+			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+			.RaytracingAccelerationStructure = info.native,
+		};
+		c.device->CreateShaderResourceView(nullptr, &desc, end);
+		c.res_lib.acceleration_structure_cache[info] = end;
+		end.ptr += stride;
+		++size;
+		return static_cast<u32>(size - 1);
+	}
+
+	auto DescHeap::push_back(const ResourceViewInfo& res_info) -> u32{
 		if (res_info.type == ResourceType::Buffer) {
 			auto& info = res_info.views.buffer_view;
 			auto view = info.get_native_view();
 			if (view.index() == 0) {
 				auto& v = std::get<0>(view);
-				d::c.device->CreateShaderResourceView(
+				c.device->CreateShaderResourceView(
 					get_native_res(info.resource_handle), &v, end);
 			}
 			else if (view.index() == 1) {
 				auto& v = std::get<1>(view);
 				// no counter
-				d::c.device->CreateUnorderedAccessView(
+				c.device->CreateUnorderedAccessView(
 					get_native_res(info.resource_handle), nullptr, &v, end);
 			}
 			c.res_lib.buffer_view_cache[res_info.views.buffer_view] = end;
@@ -218,13 +231,13 @@ namespace d {
 			auto& info = res_info.views.texture_view;
 			if (view.index() == 0) {
 				auto& v = std::get<0>(view);
-				d::c.device->CreateShaderResourceView(
+				c.device->CreateShaderResourceView(
 					get_native_res(info.resource_handle), &v, end);
 			}
 			else if (view.index() == 1) {
 				auto& v = std::get<1>(view);
 				// no counter support, TODO possibly?
-				d::c.device->CreateUnorderedAccessView(
+				c.device->CreateUnorderedAccessView(
 					get_native_res(info.resource_handle), nullptr, &v, end);
 			}
 			else if (view.index() == 2) {

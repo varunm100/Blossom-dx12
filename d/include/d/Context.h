@@ -21,6 +21,7 @@ namespace d {
 		auto init(D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_desc) -> void;
 
 		auto push_back(const ResourceViewInfo& info)->u32;
+		auto push_back(const AccelerationStructureViewInfo& info) -> u32;
 		auto push_back_get_handle(const ResourceViewInfo& info)
 			->D3D12_CPU_DESCRIPTOR_HANDLE;
 		auto get_index_of(D3D12_CPU_DESCRIPTOR_HANDLE handle)->u32;
@@ -47,6 +48,8 @@ namespace d {
 			buffer_view_cache;
 		std::unordered_map<TextureViewInfo, D3D12_CPU_DESCRIPTOR_HANDLE>
 			texture_view_cache;
+		std::unordered_map<AccelerationStructureViewInfo, D3D12_CPU_DESCRIPTOR_HANDLE>
+			acceleration_structure_cache;
 
 		DescriptorStorage storage;
 	};

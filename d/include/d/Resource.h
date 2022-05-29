@@ -116,6 +116,20 @@ namespace d {
 		[[nodiscard]] auto desc_handle() const->D3D12_CPU_DESCRIPTOR_HANDLE;
 	};
 
+	struct AccelerationStructureViewInfo {
+		u32 handle;
+		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_SRV native;
+
+		bool operator==(const AccelerationStructureViewInfo& o) const
+		{
+			return handle == o.handle && native.Location == o.native.Location;
+		}
+
+		[[nodiscard]] D3D12_SHADER_RESOURCE_VIEW_DESC get_native_view() const;
+
+		[[nodiscard]] auto desc_index() const->u32;
+	};
+
 	template <>
 	struct Resource<AccelStructure> {
 		AccelStructure handle;
@@ -125,7 +139,16 @@ namespace d {
 
 		explicit operator u32() const { return static_cast<Handle>(handle); }
 
-		[[nodiscard]] auto gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS;
+		[[nodiscard]] auto gpu_addr() const->D3D12_GPU_VIRTUAL_ADDRESS;
+		[[nodiscard]] auto view() const->AccelerationStructureViewInfo
+		{
+			return AccelerationStructureViewInfo{
+				.handle = static_cast<u32>(handle),
+				.native = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_SRV {
+					.Location = gpu_addr(),
+				},
+			};
+		}
 	};
 
 	template <>
@@ -139,7 +162,11 @@ namespace d {
 
 		auto map_and_copy(ByteSpan data, usize offset = 0) const -> void;
 
-		[[nodiscard]] auto gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS;
+		[[nodiscard]] auto gpu_addr() const->D3D12_GPU_VIRTUAL_ADDRESS;
+
+		[[nodiscard]] auto gpu_addr_range(usize size, usize start_offset=0) const->D3D12_GPU_VIRTUAL_ADDRESS_RANGE;
+
+		[[nodiscard]] auto gpu_strided_addr_range(usize stride, usize size, usize start_offset=0) const->D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE;
 
 		[[nodiscard]] auto ibo_view(std::optional<u32> index_offset,
 			u32 num_indices) const
@@ -438,8 +465,10 @@ namespace d {
 	struct TextureExtent {
 		u32 width{ 0 };
 		u32 height{ 0 };
-		u32 depth{ 0 };
-		u32 array_size{ 0 };
+		u32 depth{ 1 };
+		u32 array_size{ 1 };
+
+		[[nodiscard]] static auto full_swap_chain()->TextureExtent;
 	};
 
 	struct TextureCreateInfo {
@@ -473,4 +502,14 @@ namespace std {
 			return h;
 		}
 	};
+
+	template <>
+	struct hash<d::AccelerationStructureViewInfo> {
+		std::size_t operator()(const d::AccelerationStructureViewInfo& x) const noexcept {
+			std::size_t h = 0x0;
+			hash_combine(h, x.handle, x.native.Location);
+			return h;
+		}
+	};
+
 }  // namespace std
