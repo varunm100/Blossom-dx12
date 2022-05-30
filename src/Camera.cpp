@@ -80,6 +80,27 @@ auto Camera::_check_input(GLFWwindow* window, float dt) -> void{
     _pos -= normalize(_up) * move_speed * dt;
 }
 
+auto Camera::set_glfw_callbacks(GLFWwindow* window) -> void {
+		glfwSetInputMode(window, GLFW_CURSOR, focused ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+		glfwSetWindowUserPointer(window, this);
+		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x_pos, double y_pos) {
+			auto* c = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+			c->mouse_callback(window, x_pos, y_pos);
+			});
+		glfwSetKeyCallback(
+			window, [](GLFWwindow* window, const int key, int, const int action, int) {
+				auto* c = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+				if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
+					glfwSetInputMode(window, GLFW_CURSOR, c->focused ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+					c->focused = !c->focused;
+				}
+				else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+					glfwSetWindowShouldClose(window, true);
+				}
+			}
+		);
+}
+
 auto Camera::update(GLFWwindow* window, float dt) -> void{
   if(!focused) return;
   _check_input(window, dt);

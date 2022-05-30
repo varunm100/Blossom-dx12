@@ -36,28 +36,8 @@ int main() {
 
 	d::InitContext(window, 3);
 
-	Camera camera(glm::vec3(0., 0., 1.5), glm::vec3(0.), 30.);
-	// setup camera
-	{
-		glfwSetInputMode(window, GLFW_CURSOR, camera.focused ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
-		glfwSetWindowUserPointer(window, &camera);
-		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x_pos, double y_pos) {
-			auto* c = static_cast<Camera*>(glfwGetWindowUserPointer(window));
-			c->mouse_callback(window, x_pos, y_pos);
-			});
-		glfwSetKeyCallback(
-			window, [](GLFWwindow* window, const int key, int, const int action, int) {
-				auto* c = static_cast<Camera*>(glfwGetWindowUserPointer(window));
-				if (key == GLFW_KEY_Q && action == GLFW_PRESS) {
-					glfwSetInputMode(window, GLFW_CURSOR, c->focused ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
-					c->focused = !c->focused;
-				}
-				else if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-					glfwSetWindowShouldClose(window, true);
-				}
-			}
-		);
-	}
+	Camera camera(glm::vec3(0., 0., 3), glm::vec3(0.), 45.);
+	camera.set_glfw_callbacks(window);
 
 	auto [verts, indices] = load_model("assets/models/kitten.obj");
 	glm::mat3x4 transform = {
@@ -66,7 +46,7 @@ int main() {
 		{0., 0., 1., 0.},
 	};
 
-	auto chunk_aabb = d::AABB(0, 0, 0, 8, 8, 8);
+	auto chunk_aabb = d::AABB(0, 0, 0, 1, 1, 1);
 
 	auto vert_bytes = ByteSpan(verts);
 	auto indices_bytes = ByteSpan(indices);
@@ -113,17 +93,17 @@ int main() {
 			.cmd_build(list, false);
 	auto tlas = TlasBuilder()
 		.add_instance(TlasInstanceInfo{
-			.transform = glm::translate(glm::mat4(1), glm::vec3(-1, 0., -2.)),
+			.transform = glm::translate(glm::mat4(1), glm::vec3(-1, 0., 0.)),
 			.instance_id = 0,
 			.hit_index = 0,
 			.blas = kitten_blas,
 			})
-		//.add_instance(TlasInstanceInfo{
-		//	.transform = transform,
-		//	.instance_id = 1,
-		//	.hit_index = 1,
-		//	.blas = chunk_blas,
-		//	})
+		.add_instance(TlasInstanceInfo{
+			.transform = transform,
+			.instance_id = 1,
+			.hit_index = 1,
+			.blas = chunk_blas,
+			})
 			.cmd_build(list, false);
 
 	list.finish();
@@ -154,11 +134,12 @@ int main() {
 	c.asset_lib.add_shader("shaders/RT.hlsl", d::ShaderType::LIBRARY, "test_rt_lib");
 
 	auto rt_pl = RayTracingPipelineStream()
-		.set_library("test_rt_lib", { L"RayGen", L"ClosestHit", L"Miss" })
-		.add_hit_group(L"main", L"ClosestHit")
+		.set_library("test_rt_lib", { L"RayGen", L"ClosestHitTriangle", L"Miss", L"ClosestHitVoxelVolume", L"IntersectVoxelVolume"})
+		.add_hit_group(L"triangles", L"ClosestHitTriangle")
+		.add_hit_group(L"voxel_volume", L"ClosestHitVoxelVolume", L"", L"IntersectVoxelVolume")
 		.add_miss_shader(L"Miss")
 		.set_ray_gen_shader(L"RayGen")
-		.config_shader(16u, 8u, 1)
+		.config_shader(16u, 12u, 1)
 		.build(sizeof(RTConstants) / 4);
 
 	float prev_time = static_cast<float>(glfwGetTime());
@@ -187,7 +168,7 @@ int main() {
 			c.EndRendering();
 		}
 		auto t1 = glfwGetTime() * 1e3;
-		glfwSetWindowTitle(window, std::format("frame time: {:.2f} ms", t1 - t0).c_str());
+		glfwSetWindowTitle(window, std::format("b | Render Time: {:.2f} ms", t1 - t0).c_str());
 		glfwPollEvents();
 	}
 	glfwDestroyWindow(window);

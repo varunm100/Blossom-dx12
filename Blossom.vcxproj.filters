@@ -444,6 +444,7 @@
     <None Include="d\src\.clang-tidy" />
     <None Include="shaders\common.hlsli" />
     <None Include="shaders\RT.hlsl" />
+    <None Include="shaders\trace.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="d\include\directx\d3d12.idl">

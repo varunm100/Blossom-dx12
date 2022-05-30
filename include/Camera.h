@@ -27,6 +27,7 @@ struct Camera {
 	~Camera() = default;
 
 	auto _check_input(GLFWwindow* window, float dt) -> void;
+	auto set_glfw_callbacks(GLFWwindow* window) -> void;
 	auto mouse_callback(GLFWwindow* window, double x_pos, double y_pos) -> void;
 	auto update(GLFWwindow* window, float dt) -> void;
 	[[nodiscard]] auto get_data_index() const -> u32;
