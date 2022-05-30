@@ -164,6 +164,8 @@ namespace d {
 
 		[[nodiscard]] auto gpu_addr() const->D3D12_GPU_VIRTUAL_ADDRESS;
 
+		[[nodiscard]] auto gpu_strided_addr(usize stride) const->D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE;
+
 		[[nodiscard]] auto gpu_addr_range(usize size, usize start_offset=0) const->D3D12_GPU_VIRTUAL_ADDRESS_RANGE;
 
 		[[nodiscard]] auto gpu_strided_addr_range(usize stride, usize size, usize start_offset=0) const->D3D12_GPU_VIRTUAL_ADDRESS_RANGE_AND_STRIDE;

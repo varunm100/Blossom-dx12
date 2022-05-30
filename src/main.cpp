@@ -5,8 +5,10 @@
 
 #include <glm/glm.hpp>
 
-#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
+#include <glm/ext/matrix_transform.hpp>
+
 #include "Camera.h"
+#define TINYOBJLOADER_IMPLEMENTATION // define this in only *one* .cc
 #include "tiny_obj_loader.h"
 
 struct Vert {
@@ -64,19 +66,25 @@ int main() {
 		{0., 0., 1., 0.},
 	};
 
+	auto chunk_aabb = d::AABB(0, 0, 0, 8, 8, 8);
+
 	auto vert_bytes = ByteSpan(verts);
 	auto indices_bytes = ByteSpan(indices);
 	auto transforms_bytes = ByteSpan(transform);
+	auto aabb_bytes = ByteSpan(chunk_aabb);
 
 	using namespace d;
 	auto vbo = c.create_buffer(BufferCreateInfo{ .size = vert_bytes.size(), .usage = MemoryUsage::GPU });
 	auto ibo = c.create_buffer(BufferCreateInfo{ .size = indices_bytes.size(), .usage = MemoryUsage::GPU });
 	auto tbo = c.create_buffer(BufferCreateInfo{ .size = transforms_bytes.size(), .usage = MemoryUsage::GPU });
 
+	auto aabb_bo = c.create_buffer(BufferCreateInfo{ .size = aabb_bytes.size(), .usage = MemoryUsage::GPU });
+
 	Stager stager;
 	stager.stage_buffer(vbo, vert_bytes);
 	stager.stage_buffer(ibo, indices_bytes);
 	stager.stage_buffer(tbo, transforms_bytes);
+	stager.stage_buffer(aabb_bo, aabb_bytes);
 	stager.stage_block_until_over();
 
 	Queue general;
@@ -85,7 +93,7 @@ int main() {
 
 	list.record();
 
-	auto blas = BlasBuilder()
+	auto kitten_blas = BlasBuilder()
 		.add_triangles(BlasTriangleInfo{
 		.p_transform = tbo.gpu_addr(),
 		.p_vbo = vbo.gpu_addr(),
@@ -97,12 +105,26 @@ int main() {
 		.allow_update = false,
 			})
 			.cmd_build(list, false);
-	auto tlas = TlasBuilder().add_instance(TlasInstanceInfo{
-		.transform = transform,
-		.instance_id = 0,
-		.hit_index = 0,
-		.blas = blas,
-		}).cmd_build(list, false);
+	auto chunk_blas = BlasBuilder()
+		.add_procedural(BlasProceduralInfo{
+		.p_aabbs = aabb_bo.gpu_strided_addr(sizeof(d::AABB)),
+			.num_aabbs = 1,
+			})
+			.cmd_build(list, false);
+	auto tlas = TlasBuilder()
+		.add_instance(TlasInstanceInfo{
+			.transform = glm::translate(glm::mat4(1), glm::vec3(-1, 0., -2.)),
+			.instance_id = 0,
+			.hit_index = 0,
+			.blas = kitten_blas,
+			})
+		//.add_instance(TlasInstanceInfo{
+		//	.transform = transform,
+		//	.instance_id = 1,
+		//	.hit_index = 1,
+		//	.blas = chunk_blas,
+		//	})
+			.cmd_build(list, false);
 
 	list.finish();
 	general.submit_lists({ list });
@@ -123,7 +145,6 @@ int main() {
 		u32 output_image;
 		u32 camera_index;
 	};
-	auto tlas_cache = tlas.view().desc_index();
 	auto tracing_consts = RTConstants{
 		.tlas = tlas.view().desc_index(),
 		.output_image = rt_output.read_write_view(0).desc_index(),
@@ -166,7 +187,7 @@ int main() {
 			c.EndRendering();
 		}
 		auto t1 = glfwGetTime() * 1e3;
-		glfwSetWindowTitle(window, std::format("frame time: {:.2f} ms", t1-t0).c_str());
+		glfwSetWindowTitle(window, std::format("frame time: {:.2f} ms", t1 - t0).c_str());
 		glfwPollEvents();
 	}
 	glfwDestroyWindow(window);

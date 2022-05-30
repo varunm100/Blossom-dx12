@@ -400,7 +400,7 @@ namespace d {
 			: heap->push_back_get_handle(*this);
 	}
 
-	auto Resource<AccelStructure>::gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS {
+	[[nodiscard]] auto Resource<AccelStructure>::gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS {
 		return get_native_res(*this)->GetGPUVirtualAddress();
 	}
 
@@ -412,8 +412,15 @@ namespace d {
 		res->Unmap(0, nullptr);
 	}
 
-	[[nodiscard]] auto Resource<Buffer>::gpu_addr() const ->D3D12_GPU_VIRTUAL_ADDRESS {
+	[[nodiscard]] auto Resource<Buffer>::gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS {
 		return get_native_res(*this)->GetGPUVirtualAddress();
+	}
+
+	[[nodiscard]] auto Resource<Buffer>::gpu_strided_addr(usize stride) const -> D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE {
+		return D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE{
+			.StartAddress = get_native_res(*this)->GetGPUVirtualAddress(),
+			.StrideInBytes = stride,
+		};
 	}
 
 	[[nodiscard]] auto Resource<Buffer>::gpu_addr_range(usize size, usize start_offset) const -> D3D12_GPU_VIRTUAL_ADDRESS_RANGE {

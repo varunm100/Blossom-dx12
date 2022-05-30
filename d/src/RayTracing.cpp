@@ -33,6 +33,20 @@ namespace d {
 		return *this;
 	}
 
+	auto BlasBuilder::add_procedural(const BlasProceduralInfo& create_info) -> BlasBuilder {
+		geometries.emplace_back(
+			D3D12_RAYTRACING_GEOMETRY_DESC{
+				.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS,
+				.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE,
+				.AABBs = D3D12_RAYTRACING_GEOMETRY_AABBS_DESC {
+				.AABBCount = create_info.num_aabbs,
+				.AABBs = create_info.p_aabbs,
+				},
+			}
+		);
+		return *this;
+	}
+
 	auto BlasBuilder::cmd_build(CommandList& cl, bool _allow_update) -> Resource<AccelStructure> {
 		allow_update = _allow_update;
 		const auto flags =
@@ -95,7 +109,7 @@ namespace d {
 			.Flags = D3D12_RAYTRACING_INSTANCE_FLAG_FORCE_OPAQUE,
 			.AccelerationStructure = info.blas.gpu_addr(),
 		};
-		memcpy(instance_desc.Transform, glm::value_ptr(info.transform), sizeof(glm::mat3x4));
+		memcpy(instance_desc.Transform, glm::value_ptr(glm::transpose(info.transform)), sizeof(glm::mat3x4));
 		instances.emplace_back(instance_desc);
 		return *this;
 	}
