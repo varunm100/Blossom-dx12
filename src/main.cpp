@@ -2,6 +2,7 @@
 #include "d/Queue.h"
 #include "d/Stager.h"
 #include "d/RayTracing.h"
+#include "d/CommandGraph.h"
 
 #include <glm/glm.hpp>
 
@@ -25,6 +26,28 @@ struct Vert {
 std::tuple<std::vector<Vert>, std::vector<u32>> load_model(const char* file);
 
 int main() {
+	d::Resource<d::D2> target(0);
+	d::Resource<d::D2> target1(1);
+	d::Resource<d::D2> target2(2);
+	d::CommandGraph graph;
+	auto [recorder] = graph.record();
+	const auto [albedo, metallic, normals] = recorder.draw(d::DrawInfo<3> {
+			.render_targets = std::array{ target, target1, target2 },
+			.resources = {},
+			.push_constants = {},
+			.draw_cmds = {},
+			.debug_name = "GBuffer",
+	});
+	const auto [final] = recorder.draw(d::DrawInfo<1> {
+			.render_targets = std::array{ target },
+			.resources = { albedo, metallic, normals },
+			.push_constants = {},
+			.draw_cmds = {},
+			.debug_name = "Final",
+	});
+	graph.flatten();
+	graph.visualize_graph_to_image("output/graph.gv");
+
 	glfwInit();
 
 	GLFWwindow* window;
@@ -98,18 +121,16 @@ int main() {
 			.hit_index = 0,
 			.blas = kitten_blas,
 			})
-		.add_instance(TlasInstanceInfo{
-			.transform = transform,
-			.instance_id = 1,
-			.hit_index = 1,
-			.blas = chunk_blas,
-			})
-			.cmd_build(list, false);
+			.add_instance(TlasInstanceInfo{
+				.transform = transform,
+				.instance_id = 1,
+				.hit_index = 1,
+				.blas = chunk_blas,
+				})
+				.cmd_build(list, false);
 
 	list.finish();
 	general.submit_lists({ list });
-	general.block_until_idle();
-
 
 	info_log("Built acceleration structures!");
 
@@ -134,7 +155,7 @@ int main() {
 	c.asset_lib.add_shader("shaders/RT.hlsl", d::ShaderType::LIBRARY, "test_rt_lib");
 
 	auto rt_pl = RayTracingPipelineStream()
-		.set_library("test_rt_lib", { L"RayGen", L"ClosestHitTriangle", L"Miss", L"ClosestHitVoxelVolume", L"IntersectVoxelVolume"})
+		.set_library("test_rt_lib", { L"RayGen", L"ClosestHitTriangle", L"Miss", L"ClosestHitVoxelVolume", L"IntersectVoxelVolume" })
 		.add_hit_group(L"triangles", L"ClosestHitTriangle")
 		.add_hit_group(L"voxel_volume", L"ClosestHitVoxelVolume", L"", L"IntersectVoxelVolume")
 		.add_miss_shader(L"Miss")

@@ -3,7 +3,7 @@
 #include <optional>
 #include <variant>
 
-#include "Logging.h"
+#include "d/Logging.h"
 #include "d/Hash.h"
 #include "d/Types.h"
 #include "d/stdafx.h"
@@ -100,9 +100,9 @@ namespace d {
 		T handle;
 
 		Resource() = default;
-		Resource(u32 _handle) : handle(static_cast<T>(_handle)) {}
+		explicit Resource(u32 _handle) : handle(static_cast<T>(_handle)) {}
 
-		explicit operator u32() const { return static_cast<Handle>(handle); }
+		operator u32() const { return static_cast<Handle>(handle); }
 	};
 
 	struct ResourceViewInfo {
@@ -158,7 +158,7 @@ namespace d {
 		Resource() = default;
 		explicit Resource(u32 _handle) : handle(static_cast<Buffer>(_handle)) {}
 
-		explicit operator u32() const { return static_cast<Handle>(handle); }
+		operator u32() const { return static_cast<Handle>(handle); }
 
 		auto map_and_copy(ByteSpan data, usize offset = 0) const -> void;
 
@@ -216,7 +216,7 @@ namespace d {
 
 		explicit Resource(u32 _handle) : handle(static_cast<D2>(_handle)) {}
 
-		explicit operator u32() const { return static_cast<Handle>(handle); }
+		operator u32() const { return static_cast<Handle>(handle); }
 
 		[[nodiscard]] auto rtv_view(std::optional<u32> mip_slice) const
 			->ResourceViewInfo;

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="d\src\AssetLibrary.cpp" />
+    <ClCompile Include="d\src\CommandGraph.cpp" />
     <ClCompile Include="d\src\CommandList.cpp" />
     <ClCompile Include="d\src\Context.cpp" />
     <ClCompile Include="d\src\D3D12MemAlloc.cpp" />
@@ -153,6 +154,7 @@
     <ClInclude Include="d\include\dxc\Test\RDATDumper.h" />
     <ClInclude Include="d\include\dxc\Test\WEXAdapter.h" />
     <ClInclude Include="d\include\d\AssetLibrary.h" />
+    <ClInclude Include="d\include\d\CommandGraph.h" />
     <ClInclude Include="d\include\d\CommandList.h" />
     <ClInclude Include="d\include\d\Context.h" />
     <ClInclude Include="d\include\d\D3D12MemAlloc.h" />
@@ -277,6 +279,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(ProjectDir)d\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -335,6 +338,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>dxcompiler.lib;d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <FxCompile>
       <ShaderModel>6.5</ShaderModel>

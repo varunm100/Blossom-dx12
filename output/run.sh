@@ -1,0 +1,1 @@
+dot -Tsvg graph.gv -o graph.svg
