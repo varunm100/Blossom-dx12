@@ -95,6 +95,24 @@ namespace d {
 			get_native_view() const;
 	};
 
+	enum class AccessType : u8{
+		eNone,
+		eRead,
+		eReadWriteAtomic,
+		eRenderTarget,
+
+	};
+	enum class AccessDomain: u8 {
+		eNone,
+		eVertex,
+		eFragment,
+	};
+
+	struct ResourceMetaData {
+		AccessType type{AccessType::eNone};
+		AccessDomain domain{AccessDomain::eNone};
+
+	};
 	template <ResourceC T>
 	struct Resource {
 		T handle;
@@ -103,6 +121,7 @@ namespace d {
 		explicit Resource(u32 _handle) : handle(static_cast<T>(_handle)) {}
 
 		operator u32() const { return static_cast<Handle>(handle); }
+
 	};
 
 	struct ResourceViewInfo {
@@ -159,6 +178,32 @@ namespace d {
 		explicit Resource(u32 _handle) : handle(static_cast<Buffer>(_handle)) {}
 
 		operator u32() const { return static_cast<Handle>(handle); }
+
+		[[nodiscard]] auto ref(AccessType type, AccessDomain domain) -> std::pair<Handle, ResourceMetaData> {
+			return std::pair{
+				static_cast<Handle>(handle),
+				ResourceMetaData {
+					.type = type,
+					.domain = domain,
+				}
+			};
+		}
+		[[nodiscard]] auto ref(AccessType type) -> std::pair<Handle, ResourceMetaData> {
+			return std::pair{
+				static_cast<Handle>(handle),
+				ResourceMetaData {
+					.type = type,
+				}
+			};
+		}
+		[[nodiscard]] auto ref(AccessDomain domain) -> std::pair<Handle, ResourceMetaData> {
+			return std::pair{
+				static_cast<Handle>(handle),
+				ResourceMetaData {
+					.domain = domain,
+				}
+			};
+		}
 
 		auto map_and_copy(ByteSpan data, usize offset = 0) const -> void;
 
@@ -217,6 +262,32 @@ namespace d {
 		explicit Resource(u32 _handle) : handle(static_cast<D2>(_handle)) {}
 
 		operator u32() const { return static_cast<Handle>(handle); }
+
+		[[nodiscard]] auto ref(AccessType type, AccessDomain domain) -> std::pair<Handle, ResourceMetaData> {
+			return std::pair{
+				static_cast<Handle>(handle),
+				ResourceMetaData {
+					.type = type,
+					.domain = domain,
+				}
+			};
+		}
+		[[nodiscard]] auto ref(AccessType type) -> std::pair<Handle, ResourceMetaData> {
+			return std::pair{
+				static_cast<Handle>(handle),
+				ResourceMetaData {
+					.type = type,
+				}
+			};
+		}
+		[[nodiscard]] auto ref(AccessDomain domain) -> std::pair<Handle, ResourceMetaData> {
+			return std::pair{
+				static_cast<Handle>(handle),
+				ResourceMetaData {
+					.domain = domain,
+				}
+			};
+		}
 
 		[[nodiscard]] auto rtv_view(std::optional<u32> mip_slice) const
 			->ResourceViewInfo;

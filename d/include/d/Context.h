@@ -32,7 +32,7 @@ namespace d {
 		DescHeap depth_stencil_heap;
 		DescHeap bindable_desc_heap;
 
-		auto init(const u32 num_desc) -> void;
+		auto init(u32 num_desc) -> void;
 	};
 
 	struct ResourceState {

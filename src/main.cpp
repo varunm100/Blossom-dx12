@@ -26,25 +26,33 @@ struct Vert {
 std::tuple<std::vector<Vert>, std::vector<u32>> load_model(const char* file);
 
 int main() {
-	d::Resource<d::D2> target(0);
-	d::Resource<d::D2> target1(1);
-	d::Resource<d::D2> target2(2);
+	d::Resource<d::D2> albedo(0);
+	d::Resource<d::D2> metallic(1);
+	d::Resource<d::D2> normals(2);
 	d::CommandGraph graph;
 	auto [recorder] = graph.record();
-	const auto [albedo, metallic, normals] = recorder.draw(d::DrawInfo<3> {
-			.render_targets = std::array{ target, target1, target2 },
-			.resources = {},
+	
+	recorder.draw(d::DrawInfo{
+			.resources = {
+				albedo.ref(d::AccessType::eRenderTarget),
+				metallic.ref(d::AccessType::eRenderTarget),
+				normals.ref(d::AccessType::eRenderTarget),
+			},
 			.push_constants = {},
 			.draw_cmds = {},
 			.debug_name = "GBuffer",
-	});
-	const auto [final] = recorder.draw(d::DrawInfo<1> {
-			.render_targets = std::array{ target },
-			.resources = { albedo, metallic, normals },
+		});
+	recorder.draw(d::DrawInfo{
+			.resources = {
+				albedo.ref(d::AccessType::eRead, d::AccessDomain::eVertex),
+				metallic.ref(d::AccessType::eRead, d::AccessDomain::eVertex),
+				normals.ref(d::AccessType::eRead, d::AccessDomain::eVertex),
+			},
 			.push_constants = {},
 			.draw_cmds = {},
 			.debug_name = "Final",
 	});
+	graph.graphify();
 	graph.flatten();
 	graph.visualize_graph_to_image("output/graph.gv");
 
