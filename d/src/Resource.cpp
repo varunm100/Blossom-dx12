@@ -9,132 +9,36 @@
 
 namespace d {
 
-	u32 Context::RegisterResource(const ComPtr<ID3D12Resource>& resource,
-		const ComPtr<D3D12MA::Allocation>& allocation) {
+	u32 Context::register_resource(const ComPtr<ID3D12Resource>& resource,
+		const ComPtr<D3D12MA::Allocation>& allocation, ResourceState initial_state) {
 		bool found_spot = false;
 		usize spot = 0;
-		for (const auto& res : res_lib.resources) {
+		for (const auto& res : resource_registry.resources) {
 			if (res == nullptr) {
 				found_spot = true;
 				break;
 			}
 			++spot;
 		}
-		u32 handle = found_spot ? static_cast<u32>(spot)
-			: static_cast<u32>(res_lib.resources.size());
+		const u32 handle = found_spot ? static_cast<u32>(spot)
+			: static_cast<u32>(resource_registry.resources.size());
 
-		const auto default_state =
-			ResourceState{ .state = D3D12_RESOURCE_STATE_COMMON };
 
 		if (!found_spot)
-			res_lib.resources.push_back(resource),
-			res_lib.allocations.push_back(allocation),
-			res_lib.resource_states.push_back(default_state);
+			resource_registry.resources.push_back(resource),
+			resource_registry.allocations.push_back(allocation),
+			resource_registry.resource_states.push_back(initial_state);
 		else
-			res_lib.resources[spot] = resource, res_lib.allocations[spot] = allocation,
-			res_lib.resource_states[spot] = default_state;
+			resource_registry.resources[spot] = resource, resource_registry.allocations[spot] = allocation,
+			resource_registry.resource_states[spot] = initial_state;
 
 		return handle;
 	}
 
 	// only release staging resources! resources that have views need to flush their view cache which is not implemented yet :)
 	auto Context::release_resource(Handle handle)-> void {
-		res_lib.allocations[handle] = nullptr;
-		res_lib.resources[handle] = nullptr;
-	}
-
-	Resource<Buffer> Context::create_buffer(const BufferCreateInfo& create_info, D3D12_RESOURCE_STATES initial_state) {
-		auto resource_desc = D3D12_RESOURCE_DESC{
-				.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
-				.Width = create_info.size,
-				.Height = 1,
-				.DepthOrArraySize = 1,
-				.MipLevels = 1,
-				.Format = DXGI_FORMAT_UNKNOWN,
-				.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
-				.Flags = D3D12_RESOURCE_FLAG_NONE,
-		};
-		resource_desc.SampleDesc.Count = 1;
-		resource_desc.SampleDesc.Quality = 0;
-
-		D3D12MA::ALLOCATION_DESC allocation_desc = {};
-		D3D12_RESOURCE_STATES state;
-		switch (create_info.usage) {
-		case MemoryUsage::GPU:
-			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-			state = D3D12_RESOURCE_STATE_COPY_DEST;
-			break;
-		case MemoryUsage::Mappable:
-			allocation_desc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
-			state = D3D12_RESOURCE_STATE_GENERIC_READ;
-			break;
-		case MemoryUsage::GPU_Writable:
-			allocation_desc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
-			state = D3D12_RESOURCE_STATE_COMMON;
-			resource_desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-			break;
-		case MemoryUsage::CPU_Readable:
-			allocation_desc.HeapType = D3D12_HEAP_TYPE_READBACK;
-			state = D3D12_RESOURCE_STATE_GENERIC_READ;
-			break;
-		}
-		state = initial_state == D3D12_RESOURCE_STATE_COMMON ? state : initial_state;
-
-		ComPtr<D3D12MA::Allocation> allocation;
-		ComPtr<ID3D12Resource> resource;
-
-		DX_CHECK(allocator->CreateResource(&allocation_desc, &resource_desc, state,
-			nullptr, &allocation,
-			IID_PPV_ARGS(&resource)));
-
-		const u32 handle = RegisterResource(resource, allocation);
-
-		return Resource<Buffer>(handle);
-	}
-
-	[[nodiscard]] auto TextureExtent::full_swap_chain() -> TextureExtent {
-		return TextureExtent{
-			.width = c.swap_chain.width,
-			.height = c.swap_chain.height,
-		};
-	}
-
-
-	Resource<D2> Context::create_texture_2d(TextureCreateInfo&& texture_info) {
-		D3D12_RESOURCE_FLAGS res_flags = D3D12_RESOURCE_FLAG_NONE;
-		if (texture_info.usage == TextureUsage::RENDER_TARGET) {
-			res_flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		}
-		else if (texture_info.usage == TextureUsage::DEPTH_STENCIL) {
-			res_flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		}
-		if (texture_info.usage == TextureUsage::SHADER_READ_WRITE_ATOMIC) {
-			res_flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-		}
-		// TODO: mip levels hard coded right now :(
-		auto desc = CD3DX12_RESOURCE_DESC::Tex2D(
-			texture_info.format, texture_info.extent.width,
-			texture_info.extent.height, 1, 1, 1, 0,
-			res_flags);
-		
-
-		ComPtr<D3D12MA::Allocation> allocation;
-		ComPtr<ID3D12Resource> resource;
-
-		// bruh lol
-		const D3D12MA::ALLOCATION_DESC allocation_desc = {
-			.HeapType = D3D12_HEAP_TYPE_DEFAULT,
-		};
-		const D3D12_RESOURCE_STATES state = D3D12_RESOURCE_STATE_GENERIC_READ;
-
-		DX_CHECK(allocator->CreateResource(&allocation_desc, &desc, state, nullptr,
-			&allocation, IID_PPV_ARGS(&resource)));
-
-		const u32 handle = RegisterResource(resource, allocation);
-		auto res = Resource<D2>(handle);
-		auto& s = get_res_state(res);
-		s.state = state;
-		return res;
+		resource_registry.allocations[handle] = nullptr;
+		resource_registry.resources[handle] = nullptr;
 	}
 
 	std::variant<D3D12_SHADER_RESOURCE_VIEW_DESC, D3D12_UNORDERED_ACCESS_VIEW_DESC>
@@ -352,16 +256,16 @@ namespace d {
 	}
 
 	[[nodiscard]] auto AccelerationStructureViewInfo::desc_index() const->u32 {
-		auto& heap = c.res_lib.storage.bindable_desc_heap;
-		auto& lib = c.res_lib;
+		auto& heap = c.resource_registry.storage.bindable_desc_heap;
+		auto& lib = c.resource_registry;
 		return lib.acceleration_structure_cache.contains(*this)
 			? heap.get_index_of(lib.acceleration_structure_cache[*this])
 			: heap.push_back(*this);
 	};
 
 	[[nodiscard]] auto ResourceViewInfo::desc_index() const -> u32 {
-		auto* heap = &c.res_lib.storage.bindable_desc_heap;
-		auto& lib = c.res_lib;
+		auto* heap = &c.resource_registry.storage.bindable_desc_heap;
+		auto& lib = c.resource_registry;
 		if (type == ResourceType::Buffer) {
 			return lib.buffer_view_cache.contains(views.buffer_view)
 				? heap->get_index_of(lib.buffer_view_cache[views.buffer_view])
@@ -369,10 +273,10 @@ namespace d {
 		}
 		const auto usage = views.texture_view.texture_usage;
 		if (usage == TextureUsage::RENDER_TARGET) {
-			heap = &c.res_lib.storage.render_target_heap;
+			heap = &c.resource_registry.storage.render_target_heap;
 		}
 		else if (usage == TextureUsage::DEPTH_STENCIL) {
-			heap = &c.res_lib.storage.depth_stencil_heap;
+			heap = &c.resource_registry.storage.depth_stencil_heap;
 		}
 		return lib.texture_view_cache.contains(views.texture_view)
 			? heap->get_index_of(lib.texture_view_cache[views.texture_view])
@@ -381,8 +285,8 @@ namespace d {
 
 	[[nodiscard]] auto ResourceViewInfo::desc_handle() const
 		-> D3D12_CPU_DESCRIPTOR_HANDLE {
-		auto* heap = &c.res_lib.storage.bindable_desc_heap;
-		auto& lib = c.res_lib;
+		auto* heap = &c.resource_registry.storage.bindable_desc_heap;
+		auto& lib = c.resource_registry;
 		if (type == ResourceType::Buffer) {
 			return lib.buffer_view_cache.contains(views.buffer_view)
 				? lib.buffer_view_cache[views.buffer_view]
@@ -390,18 +294,30 @@ namespace d {
 		}
 		const auto usage = views.texture_view.texture_usage;
 		if (usage == TextureUsage::RENDER_TARGET) {
-			heap = &c.res_lib.storage.render_target_heap;
+			heap = &c.resource_registry.storage.render_target_heap;
 		}
 		else if (usage == TextureUsage::DEPTH_STENCIL) {
-			heap = &c.res_lib.storage.depth_stencil_heap;
+			heap = &c.resource_registry.storage.depth_stencil_heap;
 		}
 		return lib.texture_view_cache.contains(views.texture_view)
 			? lib.texture_view_cache[views.texture_view]
 			: heap->push_back_get_handle(*this);
 	}
 
+	[[nodiscard]] auto TextureExtent::full_swap_chain() -> TextureExtent {
+		return TextureExtent{
+			.width = c.swap_chain.width,
+			.height = c.swap_chain.height,
+		};
+	}
+
 	[[nodiscard]] auto Resource<AccelStructure>::gpu_addr() const -> D3D12_GPU_VIRTUAL_ADDRESS {
 		return get_native_res(*this)->GetGPUVirtualAddress();
+	}
+
+	Resource<Buffer> Resource<Buffer>::operator>>(const std::string_view& name) const {
+		c.resource_registry.named_resource_map[name] = static_cast<u32>(this->handle);
+		return *this;
 	}
 
 	auto Resource<Buffer>::map_and_copy(ByteSpan data, usize offset) const -> void {

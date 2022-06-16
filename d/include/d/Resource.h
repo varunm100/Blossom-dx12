@@ -100,6 +100,7 @@ namespace d {
 		eRead,
 		eReadWriteAtomic,
 		eRenderTarget,
+		eDepthTarget,
 
 	};
 	enum class AccessDomain: u8 {
@@ -176,6 +177,8 @@ namespace d {
 
 		Resource() = default;
 		explicit Resource(u32 _handle) : handle(static_cast<Buffer>(_handle)) {}
+
+		Resource<Buffer> operator >> (const std::string_view& name) const;
 
 		operator u32() const { return static_cast<Handle>(handle); }
 
@@ -515,41 +518,6 @@ namespace d {
 					.type = ResourceType::D3,
 			};
 		}
-	};
-
-	enum struct MemoryUsage {
-		GPU_Writable,
-		GPU,
-		CPU_Readable,
-		Mappable,
-	};
-
-	struct BufferCreateInfo {
-		size_t size{ 0 };
-		MemoryUsage usage{ MemoryUsage::GPU };
-	};
-
-	enum struct TextureDimension {
-		D1,
-		D2,
-		D3,
-	};
-
-	struct TextureExtent {
-		u32 width{ 0 };
-		u32 height{ 0 };
-		u32 depth{ 1 };
-		u32 array_size{ 1 };
-
-		[[nodiscard]] static auto full_swap_chain()->TextureExtent;
-	};
-
-	struct TextureCreateInfo {
-		DXGI_FORMAT format{ DXGI_FORMAT_UNKNOWN };
-		TextureDimension dim{ TextureDimension::D2 };
-		TextureExtent extent;
-		//    MemoryUsage usage{MemoryUsage::GPU};
-		TextureUsage usage;
 	};
 
 }  // namespace d

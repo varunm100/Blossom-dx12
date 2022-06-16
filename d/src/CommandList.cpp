@@ -59,7 +59,7 @@ namespace d {
 		handle->SetPipelineState(render_info.pl.get_native());
 		handle->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		handle->SetDescriptorHeaps(
-			1, c.res_lib.storage.bindable_desc_heap.heap.GetAddressOf());
+			1, c.resource_registry.storage.bindable_desc_heap.heap.GetAddressOf());
 		handle->SetGraphicsRootSignature(render_info.pl.root_signature.Get());
 		// constexpr float clear_color[] = { 1.0f, .0f, .0f, 1.0f };
 		// c.main_command_list->ClearRenderTargetView(out_handle, clear_color, 0,
@@ -86,7 +86,7 @@ namespace d {
 
 	auto CommandList::trace(const TraceInfo& trace_info) -> CommandList& {
 		handle->SetPipelineState1(trace_info.pl.get_native());
-		handle->SetDescriptorHeaps(1, c.res_lib.storage.bindable_desc_heap.heap.GetAddressOf());
+		handle->SetDescriptorHeaps(1, c.resource_registry.storage.bindable_desc_heap.heap.GetAddressOf());
 		handle->SetComputeRootSignature(trace_info.pl.global_root_signature.Get());
 		handle->SetComputeRoot32BitConstants(0, static_cast<UINT>(trace_info.push_constants.size() / 4), trace_info.push_constants.data(), 0);
 		auto desc = D3D12_DISPATCH_RAYS_DESC{

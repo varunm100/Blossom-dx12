@@ -8,16 +8,17 @@
 #include "d/AssetLibrary.h"
 #include "d/Queue.h"
 #include "d/Resource.h"
+#include "d/ResourceCreator.h"
 
 namespace d {
-	struct DescHeap {
+	struct DescriptorHeap {
 		ComPtr<ID3D12DescriptorHeap> heap;
 		D3D12_CPU_DESCRIPTOR_HANDLE start;
 		D3D12_CPU_DESCRIPTOR_HANDLE end;
 		usize size{ 0 };
 		u32 stride;
 
-		DescHeap() = default;
+		DescriptorHeap() = default;
 		auto init(D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_desc) -> void;
 
 		auto push_back(const ResourceViewInfo& info)->u32;
@@ -28,21 +29,24 @@ namespace d {
 	};
 
 	struct DescriptorStorage {
-		DescHeap render_target_heap;
-		DescHeap depth_stencil_heap;
-		DescHeap bindable_desc_heap;
+		DescriptorHeap render_target_heap;
+		DescriptorHeap depth_stencil_heap;
+		DescriptorHeap bindable_desc_heap;
 
 		auto init(u32 num_desc) -> void;
 	};
 
 	struct ResourceState {
-		D3D12_RESOURCE_STATES state{ D3D12_RESOURCE_STATE_COMMON };
+		ResourceType type;
+		D3D12_BARRIER_ACCESS access_state{ D3D12_BARRIER_ACCESS_COMMON };
 	};
 
-	struct ResourceLibrary {
+	struct ResourceRegistry {
 		std::vector<ResourceState> resource_states;
 		std::vector<ComPtr<ID3D12Resource>> resources;
 		std::vector<ComPtr<D3D12MA::Allocation>> allocations;
+
+		std::unordered_map<std::string_view, u32> named_resource_map;
 
 		std::unordered_map<BufferViewInfo, D3D12_CPU_DESCRIPTOR_HANDLE>
 			buffer_view_cache;
@@ -52,6 +56,9 @@ namespace d {
 			acceleration_structure_cache;
 
 		DescriptorStorage storage;
+
+		auto create_buffer(const BufferCreateInfo& info) const -> Resource<Buffer>;
+		auto create_texture_2d(TextureCreateInfo& info) const -> Resource<D2>;
 	};
 
 	struct Swapchain {
@@ -76,17 +83,14 @@ namespace d {
 
 		CommandList main_command_list;
 
-		Queue async_transfer_q;
-		Queue async_compute_q;
 		Queue general_q;
 
 		ComPtr<D3D12MA::Allocator> allocator;
 		Swapchain swap_chain;
 		AssetLibrary asset_lib;
-		ResourceLibrary res_lib;
+		ResourceRegistry resource_registry;
 
 		Context() = default;
-
 		~Context() = default;
 
 		auto init(GLFWwindow* window, u32 sc_count) -> void;
@@ -96,13 +100,8 @@ namespace d {
 
 		void EndRendering();
 
-		[[nodiscard]] auto create_buffer(const BufferCreateInfo& create_info, D3D12_RESOURCE_STATES initial_state=D3D12_RESOURCE_STATE_COMMON)->Resource<Buffer>;
-
-		[[nodiscard]] auto
-			create_texture_2d(TextureCreateInfo&& texture_info)->Resource<D2>;
-
-		auto RegisterResource(const ComPtr<ID3D12Resource>& resource,
-			const ComPtr<D3D12MA::Allocation>& allocation)->u32;
+		auto register_resource(const ComPtr<ID3D12Resource>& resource,
+			const ComPtr<D3D12MA::Allocation>& allocation, ResourceState initial_state)->u32;
 		auto release_resource(Handle handle) -> void;
 
 	};
@@ -126,18 +125,27 @@ namespace d {
 	template <ResourceC T>
 	inline auto get_native_res(Resource<T> handle) -> ID3D12Resource* {
 		u32 index = static_cast<u32>(handle);
-		return c.res_lib.resources[index].Get();
+		return c.resource_registry.resources[index].Get();
+	};
+
+	template <ResourceC T>
+	[[nodiscard]] inline auto get_named_res(std::string_view name) -> Resource<T> {
+		assert_log(c.resource_registry.named_resource_map.contains(name), "rescource with name doesn't exist");
+		return Resource<T>(c.resource_registry.named_resource_map[name]);
 	};
 	template <ResourceC T>
 	inline auto get_res_state(Resource<T> handle) -> ResourceState& {
 		u32 index = static_cast<u32>(handle);
-		return c.res_lib.resource_states[index];
+		return c.resource_registry.resource_states[index];
+	};
+	[[nodiscard]] inline auto get_res_state(Handle handle) -> ResourceState {
+		return c.resource_registry.resource_states[handle];
 	};
 
 	inline auto get_native_res(Handle handle) -> ID3D12Resource* {
-		return c.res_lib.resources[handle].Get();
+		return c.resource_registry.resources[handle].Get();
 	}
 
-	auto InitContext(GLFWwindow* window, u32 sc_count) -> void;
+	[[nodiscard]] auto InitContext(GLFWwindow* window, u32 sc_count) -> std::pair<ResourceRegistry&, AssetLibrary&>;
 
 } // namespace d

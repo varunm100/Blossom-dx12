@@ -3,6 +3,7 @@
 #include <future>
 #include <ranges>
 
+#include "d/CommandList.h"
 #include "d/Resource.h"
 
 namespace d {
@@ -86,6 +87,7 @@ namespace d {
 		[[nodiscard]] inline auto get_draw_info(const CommandInfo& info) const->nDrawInfo;
 		[[nodiscard]] inline auto get_copy_buffer_info(const CommandInfo& info) const->nCopyBufferInfo;
 		[[nodiscard]] auto get_barrier_info(const CommandInfo& info, usize index, bool write) const -> std::pair<D3D12_BARRIER_SYNC, D3D12_BARRIER_ACCESS>;
+		[[nodiscard]] auto get_layout_requirements(const CommandInfo& info) const -> std::vector<std::pair<Handle, D3D12_BARRIER_LAYOUT>>;
 	};
 
 	struct Empty {};
@@ -99,21 +101,27 @@ namespace d {
 			Handle res;
 			bool is_texture;
 		};
+
 		CommandRecorder recorder;
-		// inner pair holds command index and a list of resources
+		// adj list of execution DAG and flattened version of that groups commands into execution steps
 		std::vector<std::vector<std::pair<u32, std::vector<Barrier>>>> command_adj_list;
 		std::vector<std::pair<std::vector<u32>, std::vector<Barrier>>> execution_steps;
+		// (index of command, array of textures and their required layouts)
+		std::vector<std::vector<std::pair<Handle, D3D12_BARRIER_LAYOUT>>> required_layouts;
 
 		CommandGraph() = default;
 		~CommandGraph() = default;
 
 		auto visualize_graph_to_image(const char* name) -> void;
 
-		auto record()->std::tuple<CommandRecorder&> { return recorder; }
+		auto record() -> std::tuple<CommandRecorder&> { return recorder; }
 
 		[[nodiscard]] auto get_barrier_dependencies(const CommandInfo& c0, const CommandInfo& c1) const -> std::vector<Barrier>;
 		auto graphify() -> void;
 		auto flatten() -> void;
-		auto execute_async()->std::future<Empty>;
+		auto execute_async() -> std::future<Empty>;
+
+		CommandList list;
+
 	};
 }

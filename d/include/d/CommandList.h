@@ -2,10 +2,12 @@
 
 #include "d/Pipeline.h"
 #include "d/Resource.h"
+#include "d/ResourceCreator.h"
 #include "d/Types.h"
 #include "d/stdafx.h"
 
 #include <glm/glm.hpp>
+
 
 namespace d {
 
@@ -32,7 +34,7 @@ namespace d {
 
 	struct CommandList {
 		ComPtr<ID3D12CommandAllocator> allocator;
-		ComPtr<ID3D12GraphicsCommandList4> handle;
+		ComPtr<ID3D12GraphicsCommandList7> handle;
 
 		CommandList() = default;
 		~CommandList() = default;

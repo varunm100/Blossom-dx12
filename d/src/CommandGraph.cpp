@@ -3,6 +3,8 @@
 #include <ranges>
 #include <stack>
 
+#include "d/Context.h"
+
 namespace d {
 
 	[[nodiscard]] inline auto nDrawInfo::get_barrier_info(usize index, bool write) const -> std::pair<D3D12_BARRIER_SYNC, D3D12_BARRIER_ACCESS> {
@@ -31,6 +33,10 @@ namespace d {
 			access = D3D12_BARRIER_ACCESS_RENDER_TARGET;
 			sync = D3D12_BARRIER_SYNC_RENDER_TARGET;
 			break;
+		case AccessType::eDepthTarget:
+			access = D3D12_BARRIER_ACCESS_DEPTH_STENCIL_WRITE;
+			sync = D3D12_BARRIER_SYNC_DEPTH_STENCIL;
+			break;
 		default:
 			access = D3D12_BARRIER_ACCESS_NO_ACCESS;
 			break;
@@ -47,7 +53,7 @@ namespace d {
 			std::vector<ResourceMetaData> write_meta;
 			for (const auto& [handle, metadata] : info.resources) {
 				if (metadata.type == AccessType::eRead) reads.emplace_back(handle), read_meta.emplace_back(metadata);
-				else if (metadata.type == AccessType::eReadWriteAtomic || metadata.type == AccessType::eRenderTarget) {
+				else if (metadata.type == AccessType::eReadWriteAtomic || metadata.type == AccessType::eRenderTarget || metadata.type == AccessType::eDepthTarget) {
 					writes.emplace_back(handle), write_meta.emplace_back(metadata);
 				}
 			}
@@ -102,6 +108,41 @@ namespace d {
 		}
 	}
 
+	auto CommandRecorder::get_layout_requirements(const CommandInfo& info) const -> std::vector<std::pair<Handle, D3D12_BARRIER_LAYOUT>> {
+		std::vector<std::pair<Handle, D3D12_BARRIER_LAYOUT>> layout_requirements;
+
+		switch (info.type) {
+		case CommandType::eDraw:
+			const auto& draw_info = get_draw_info(info);
+			usize i = 0;
+			for(const auto& read : draw_info.reads) {
+				const auto& meta_data = draw_info.get_meta_data(i, false);
+				if(get_res_state(read).type == ResourceType::D2) {
+					layout_requirements.emplace_back(read, D3D12_BARRIER_LAYOUT_SHADER_RESOURCE);
+				}
+				++i;
+			}
+			i = 0;
+			for(const auto& write : draw_info.writes) {
+				const auto& meta_data = draw_info.get_meta_data(i, true);
+				if(get_res_state(write).type == ResourceType::D2) {
+					if(meta_data.type == AccessType::eRenderTarget) {
+						layout_requirements.emplace_back(write, D3D12_BARRIER_LAYOUT_RENDER_TARGET);
+					} else if (meta_data.type == AccessType::eDepthTarget) {
+						layout_requirements.emplace_back(write, D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_WRITE);
+					} else if (meta_data.type == AccessType::eReadWriteAtomic) {
+						layout_requirements.emplace_back(write, D3D12_BARRIER_LAYOUT_UNORDERED_ACCESS);
+					}
+				}
+				++i;
+			}
+		default:
+			assert_log(0, "cannot get barrier info from unkown command type");
+			return layout_requirements;
+		}
+
+	}
+
 	auto CommandGraph::get_barrier_dependencies(const CommandInfo& c0, const CommandInfo& c1) const -> std::vector<Barrier> {
 		std::vector<Barrier> barriers;
 
@@ -112,7 +153,8 @@ namespace d {
 			for (const auto& res : connected_resources) {
 				const auto [sync0, access0] = recorder.get_barrier_info(c0, res, false);
 				const auto [sync1, access1] = recorder.get_barrier_info(c1, res, true);
-				barriers.emplace_back(sync0, sync1, access0, access1, res, false);
+				const auto is_texture = get_res_state(res).type == ResourceType::D2;
+				barriers.emplace_back(sync0, sync1, access0, access1, res, is_texture);
 			}
 		}
 
@@ -123,24 +165,31 @@ namespace d {
 			for (const auto& res : connected_resources) {
 				const auto [sync0, access0] = recorder.get_barrier_info(c0, res, true);
 				const auto [sync1, access1] = recorder.get_barrier_info(c1, res, false);
-				barriers.emplace_back(sync0, sync1, access0, access1, res, false);
+				const auto is_texture = get_res_state(res).type == ResourceType::D2;
+				barriers.emplace_back(sync0, sync1, access0, access1, res, is_texture);
 			}
 		}
 		return barriers;
 	}
 
 	auto CommandGraph::graphify() -> void {
+		std::unordered_map<Handle, D3D12_BARRIER_LAYOUT> last_layout;
 		const auto& stream = recorder.command_stream;
+
 		// build adjacency list
 		command_adj_list.resize(stream.size());
+		required_layouts.resize(stream.size());
+
 		usize ci = 0;
 		for (const auto& c0 : stream) {
 			usize cii = ci + 1;
+			// fill resource barriers
 			for (const auto& c1 : stream | std::views::drop(ci + 1)) {
 				auto barriers = get_barrier_dependencies(c0, c1);
-				command_adj_list[ci].emplace_back(cii, barriers);
+				if(!barriers.empty()) command_adj_list[ci].emplace_back(cii, barriers);
 				++cii;
 			}
+			required_layouts[ci] = recorder.get_layout_requirements(c0);
 			++ci;
 		}
 	}
@@ -156,10 +205,10 @@ namespace d {
 		std::stack<u32> stack;
 		for (usize v = 0; v < visited.size(); ++v) {
 			if (!visited[v]) {
-				// the fact that this is a DAG and in-order command list implies this has to be a source
+				// DAG and In-order command list -> has to be a source node
 				stack.push(static_cast<u32>(v));
 				u32 exe_step = 0;
-				while (!stack.empty()) { // dfs
+				while (!stack.empty()) { // standard dfs
 					const u32 node = stack.top();
 					stack.pop();
 					visited[node] = true;

@@ -92,12 +92,10 @@ namespace d {
 		DX_CHECK(factory->MakeWindowAssociation(win_handle, DXGI_MWA_NO_ALT_ENTER));
 
 		general_q.init(QueueType::GENERAL);
-		async_transfer_q.init(QueueType::ASYNC_TRANSFER);
-		async_compute_q.init(QueueType::ASYNC_COMPUTE);
 
 		asset_lib.init();
 
-		c.res_lib.storage.init(100);
+		c.resource_registry.storage.init(100);
 
 		swap_chain.images.reserve(sc_count);
 		for (u32 i = 0; i < sc_count; ++i) {
@@ -105,7 +103,7 @@ namespace d {
 			ComPtr<D3D12MA::Allocation> empty_allocation;
 
 			DX_CHECK(swap_chain.swapchain->GetBuffer(i, IID_PPV_ARGS(&image)));
-			auto res = Resource<D2>(RegisterResource(image, empty_allocation));
+			auto res = Resource<D2>(register_resource(image, empty_allocation));
 			swap_chain.images.push_back(res);
 
 			// initialize cache
@@ -158,9 +156,10 @@ namespace d {
 		general_queue.block_until_idle();
 	}
 
-	void InitContext(GLFWwindow* window, u32 sc_count) {
+	auto InitContext(GLFWwindow* window, u32 sc_count) -> std::pair<ResourceRegistry&, AssetLibrary&> {
 		c = d::Context();
 		c.init(window, 3);
+		return std::make_pair(c.resource_registry, c.asset_lib);
 	}
 
 	void DescriptorStorage::init(const u32 num_desc) {
@@ -169,7 +168,7 @@ namespace d {
 		depth_stencil_heap.init(D3D12_DESCRIPTOR_HEAP_TYPE_DSV, num_desc);
 	}
 
-	void DescHeap::init(D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_desc) {
+	void DescriptorHeap::init(D3D12_DESCRIPTOR_HEAP_TYPE type, u32 num_desc) {
 		const D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {
 				.Type = type,
 				.NumDescriptors = num_desc,
@@ -186,24 +185,24 @@ namespace d {
 		size = 0;
 	}
 
-	auto DescHeap::get_index_of(D3D12_CPU_DESCRIPTOR_HANDLE handle) -> u32 {
+	auto DescriptorHeap::get_index_of(D3D12_CPU_DESCRIPTOR_HANDLE handle) -> u32 {
 		return static_cast<u32>((handle.ptr - start.ptr) / stride);
 	}
 
-	auto DescHeap::push_back(const AccelerationStructureViewInfo& info) -> u32{
+	auto DescriptorHeap::push_back(const AccelerationStructureViewInfo& info) -> u32{
 		auto desc = D3D12_SHADER_RESOURCE_VIEW_DESC{
 			.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
 			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
 			.RaytracingAccelerationStructure = info.native,
 		};
 		c.device->CreateShaderResourceView(nullptr, &desc, end);
-		c.res_lib.acceleration_structure_cache[info] = end;
+		c.resource_registry.acceleration_structure_cache[info] = end;
 		end.ptr += stride;
 		++size;
 		return static_cast<u32>(size - 1);
 	}
 
-	auto DescHeap::push_back(const ResourceViewInfo& res_info) -> u32{
+	auto DescriptorHeap::push_back(const ResourceViewInfo& res_info) -> u32{
 		if (res_info.type == ResourceType::Buffer) {
 			auto& info = res_info.views.buffer_view;
 			auto view = info.get_native_view();
@@ -218,7 +217,7 @@ namespace d {
 				c.device->CreateUnorderedAccessView(
 					get_native_res(info.resource_handle), nullptr, &v, end);
 			}
-			c.res_lib.buffer_view_cache[res_info.views.buffer_view] = end;
+			c.resource_registry.buffer_view_cache[res_info.views.buffer_view] = end;
 			end.ptr += stride;
 			++size;
 			return static_cast<u32>(size - 1);
@@ -250,14 +249,14 @@ namespace d {
 				d::c.device->CreateDepthStencilView(get_native_res(info.resource_handle),
 					&v, end);
 			}
-			c.res_lib.texture_view_cache[res_info.views.texture_view] = end;
+			c.resource_registry.texture_view_cache[res_info.views.texture_view] = end;
 			end.ptr += stride;
 			++size;
 			return static_cast<u32>(size - 1);
 		}
 	}
 
-	D3D12_CPU_DESCRIPTOR_HANDLE DescHeap::push_back_get_handle(
+	D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::push_back_get_handle(
 		const ResourceViewInfo& res_info) {
 		push_back(res_info);
 		D3D12_CPU_DESCRIPTOR_HANDLE _end = end;

@@ -51,6 +51,9 @@
     <ClCompile Include="d\src\CommandGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="d\src\ResourceCreator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d\include\d\AssetLibrary.h">
@@ -417,6 +420,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="d\include\d\CommandGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="d\include\d\ResourceCreator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
