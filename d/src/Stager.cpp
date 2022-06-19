@@ -73,7 +73,7 @@ namespace d {
 	}
 
 	auto Stager::stage_block_until_over() -> void {
-		Resource<Buffer> stage = d::c.create_buffer(BufferCreateInfo{
+		Resource<Buffer> stage = c.resource_registry.create_buffer(BufferCreateInfo{
 				.size = max_stage_size,
 				.usage = MemoryUsage::Mappable,
 			});

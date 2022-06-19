@@ -46,15 +46,15 @@ namespace d {
 			usize size, u32 src_offset = 0, u32 dst_offset = 0)
 			->CommandList&;
 
-		auto clear_image(Resource<D2> image, float color[4])->CommandList&;
-		auto copy_image(Resource<D2> src, Resource<D2> dst)->CommandList&;
+		//auto clear_image(Resource<D2> image, float color[4])->CommandList&;
+		//auto copy_image(Resource<D2> src, Resource<D2> dst)->CommandList&;
 
-		auto transition(u32 res_handle, D3D12_RESOURCE_STATES after_state)->CommandList&;
-		auto transition(Resource<Buffer> buffer, D3D12_RESOURCE_STATES after_state)->CommandList&;
-		auto transition(Resource<D2> texture, D3D12_RESOURCE_STATES after_state)->CommandList&;
+		//auto transition(u32 res_handle, D3D12_RESOURCE_STATES after_state)->CommandList&;
+		//auto transition(Resource<Buffer> buffer, D3D12_RESOURCE_STATES after_state)->CommandList&;
+		//auto transition(Resource<D2> texture, D3D12_RESOURCE_STATES after_state)->CommandList&;
 
-		auto draw_directs(const DrawDirectsInfo& draw_infos)->CommandList&;
-		auto trace(const TraceInfo& trace_info) ->CommandList&;
+		//auto draw_directs(const DrawDirectsInfo& draw_infos)->CommandList&;
+		//auto trace(const TraceInfo& trace_info) ->CommandList&;
 	};
 
 } // namespace d

@@ -292,9 +292,9 @@ namespace d {
 				                                                                ID_SIZE), current_byte += static_cast<u32>(ID_SIZE);
 		}
 
-		// TODO: callable shaders?
+		// TODO: change this shit
 
-		sbt.storage = c.create_buffer(BufferCreateInfo{ .size = sbt_size, .usage = MemoryUsage::GPU });
+		//sbt.storage = c.create_buffer(BufferCreateInfo{ .size = sbt_size, .usage = MemoryUsage::GPU });
 
 		Stager stager;
 		stager.stage_buffer(sbt.storage, ByteSpan(sbt_data));

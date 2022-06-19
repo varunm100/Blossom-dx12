@@ -13,7 +13,7 @@ namespace d {
 	};
 
 	struct DrawCmd {
-		Resource<Buffer> ibo;
+		D3D12_INDEX_BUFFER_VIEW ibo_view;
 		u32 index_count_per_instance;
 		u32 instance_count;
 		u32 start_index_location;
@@ -54,12 +54,15 @@ namespace d {
 		std::vector<DrawCmd> commands;
 
 		std::string_view debug_name;
+		GraphicsPipeline pl;
 		bool depth{ false };
 
-		auto _run_cmd() -> void;
 		[[nodiscard]] auto get_meta_data(usize index, bool write) const -> ResourceMetaData { return write ? meta_data[index + reads.size()] : meta_data[index]; }
 		[[nodiscard]] inline auto get_barrier_info(usize index, bool write) const -> std::pair<D3D12_BARRIER_SYNC, D3D12_BARRIER_ACCESS>;
+
+		auto do_command(CommandList& list) const -> void;
 	};
+
 	struct DrawInfo {
 		std::initializer_list<std::pair<Handle, ResourceMetaData>> resources;
 		std::initializer_list<ByteSpan> push_constants;
@@ -88,6 +91,7 @@ namespace d {
 		[[nodiscard]] inline auto get_copy_buffer_info(const CommandInfo& info) const->nCopyBufferInfo;
 		[[nodiscard]] auto get_barrier_info(const CommandInfo& info, usize index, bool write) const -> std::pair<D3D12_BARRIER_SYNC, D3D12_BARRIER_ACCESS>;
 		[[nodiscard]] auto get_layout_requirements(const CommandInfo& info) const -> std::vector<std::pair<Handle, D3D12_BARRIER_LAYOUT>>;
+		auto do_command(CommandList& list, const CommandInfo& info) const;
 	};
 
 	struct Empty {};
@@ -109,6 +113,12 @@ namespace d {
 		// (index of command, array of textures and their required layouts)
 		std::vector<std::vector<std::pair<Handle, D3D12_BARRIER_LAYOUT>>> required_layouts;
 
+		// per execution step
+		std::vector<std::vector<D3D12_BUFFER_BARRIER>> native_buffer_barriers;
+		std::vector<std::vector<D3D12_TEXTURE_BARRIER>> native_texture_barriers;
+		// per command
+		std::vector<std::vector<D3D12_TEXTURE_BARRIER>> native_command_level_transitions;
+
 		CommandGraph() = default;
 		~CommandGraph() = default;
 
@@ -119,9 +129,6 @@ namespace d {
 		[[nodiscard]] auto get_barrier_dependencies(const CommandInfo& c0, const CommandInfo& c1) const -> std::vector<Barrier>;
 		auto graphify() -> void;
 		auto flatten() -> void;
-		auto execute_async() -> std::future<Empty>;
-
-		CommandList list;
-
+		auto do_commands(CommandList& list) const;
 	};
 }

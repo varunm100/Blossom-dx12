@@ -3,7 +3,7 @@
 #include "Camera.h"
 #include "d/Context.h"
 
-Camera::Camera(glm::vec3 initial_pos, glm::vec3 look_at, float fov) {
+Camera::Camera(glm::vec3 initial_pos, glm::vec3 look_at, float fov, float aspect_ratio) {
   _pos = initial_pos;
   _dir = normalize(look_at - initial_pos);
   _pitch = glm::degrees(asin(_dir.y));
@@ -11,10 +11,10 @@ Camera::Camera(glm::vec3 initial_pos, glm::vec3 look_at, float fov) {
   
   data.view = lookAt(initial_pos, _dir, _up);
   data.view_inverse = inverse(data.view);
-  data.proj = glm::perspective(glm::radians(fov), static_cast<float>(d::c.swap_chain.width) / static_cast<float>(d::c.swap_chain.height), 0.1f, 2000.0f);
+  data.proj = glm::perspective(glm::radians(fov), aspect_ratio, 0.1f, 2000.0f);
   data.proj_inverse = inverse(data.proj);
 
-  buffer = d::c.create_buffer(d::BufferCreateInfo{.size = sizeof(data), .usage = d::MemoryUsage::Mappable});
+  buffer = d::c.resource_registry.create_buffer(d::BufferCreateInfo{.size = sizeof(data), .usage = d::MemoryUsage::Mappable});
   buffer.map_and_copy(ByteSpan(data));
 
   // force caching of descriptor
@@ -33,7 +33,7 @@ Camera::Camera(glm::vec3 initial_pos, glm::vec3 look_at, glm::vec3 up, float asp
   data.proj = glm::perspective(glm::radians(fov), aspect_ratio, 0.1f, 2000.0f);
   data.proj_inverse = inverse(data.proj);
 
-  buffer = d::c.create_buffer(d::BufferCreateInfo{.size = sizeof(data), .usage = d::MemoryUsage::Mappable});
+  buffer = d::c.resource_registry.create_buffer(d::BufferCreateInfo{.size = sizeof(data), .usage = d::MemoryUsage::Mappable});
   buffer.map_and_copy(ByteSpan(data));
 
   // force caching of descriptor

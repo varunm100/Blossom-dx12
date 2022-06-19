@@ -72,9 +72,9 @@ namespace d {
 		result_size = ROUND_UP(info.ResultDataMaxSizeInBytes,
 			D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
-		scratch = c.create_buffer(BufferCreateInfo{ .size = scratch_size, .usage = MemoryUsage::GPU_Writable });
-		Resource<Buffer> result = c.create_buffer(BufferCreateInfo{ .size = result_size, .usage = MemoryUsage::GPU_Writable }, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
-
+		scratch = c.resource_registry.create_buffer(BufferCreateInfo{ .size = scratch_size, .usage = MemoryUsage::GPU_Writable });
+		// TODO: change
+		const Resource<Buffer> result = c.resource_registry.create_buffer(BufferCreateInfo{.size = result_size, .usage = MemoryUsage::GPU_Writable});
 
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC buildDesc;
 		buildDesc.Inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
@@ -88,7 +88,7 @@ namespace d {
 		buildDesc.SourceAccelerationStructureData = 0,
 			buildDesc.Inputs.Flags = flags;
 
-		cl.transition(scratch, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
+		//cl.transition(scratch, D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
 		cl.handle->BuildRaytracingAccelerationStructure(&buildDesc, 0, nullptr);
 
 		D3D12_RESOURCE_BARRIER uavBarrier;
@@ -140,11 +140,12 @@ namespace d {
 			ROUND_UP(sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * instances.size(),
 				D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
 
-		instance_buffer = c.create_buffer(BufferCreateInfo{ .size = desc_size, .usage = MemoryUsage::Mappable });
+		instance_buffer = c.resource_registry.create_buffer(BufferCreateInfo{ .size = desc_size, .usage = MemoryUsage::Mappable });
 		instance_buffer.map_and_copy(ByteSpan(instances));
 
-		scratch = c.create_buffer(BufferCreateInfo{ .size = scratch_size, .usage = MemoryUsage::GPU_Writable });
-		const Resource<Buffer> result = c.create_buffer(BufferCreateInfo{ .size = result_size, .usage = MemoryUsage::GPU_Writable }, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+		scratch = c.resource_registry.create_buffer(BufferCreateInfo{ .size = scratch_size, .usage = MemoryUsage::GPU_Writable });
+		//const Resource<Buffer> result = c.create_buffer(BufferCreateInfo{ .size = result_size, .usage = MemoryUsage::GPU_Writable }, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE);
+		const Resource<Buffer> result = c.resource_registry.create_buffer(BufferCreateInfo{ .size = result_size, .usage = MemoryUsage::GPU_Writable });
 
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC buildDesc = {};
 		buildDesc.Inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;

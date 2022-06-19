@@ -36,10 +36,10 @@ int main() {
 	if (window == nullptr)
 		throw std::exception("glfwCreateWindow failed");
 
-	Camera camera(glm::vec3(0., 0., 3), glm::vec3(0.), 45.);
-	camera.set_glfw_callbacks(window);
-
 	auto [reg, assets] = d::InitContext(window, 3);
+
+	Camera camera(glm::vec3(0., 0., 3), glm::vec3(0.), 45., 1280./720.);
+	camera.set_glfw_callbacks(window);
 
 	auto [verts, indices] = load_model("assets/models/kitten.obj");
 	auto vert_bytes = ByteSpan(verts);
@@ -67,14 +67,36 @@ int main() {
 			.default_raster()
 			.set_vertex_shader("test_vs")
 			.set_fragment_shader("test_fs")
-			.build(true, 1);
+			.build(true, 3);
 	}
 	d::CommandGraph graph;
 	{
+		struct DrawConsts {
+			u32 vbo_loc;
+		};
 		using namespace d;
 		auto [recorder] = graph.record();
+		const auto& output_image = c.swap_chain.images[0];
 		recorder.draw(DrawInfo{
-			});
+			.resources = { vbo.ref(AccessDomain::eVertex), output_image.ref(AccessType::eRenderTarget) },
+			.push_constants = {
+				ByteSpan(DrawConsts {
+					.vbo_loc = vbo.read_view(true, 0, static_cast<u32>(verts.size()), {})
+												.desc_index(),
+				})
+			},
+			.draw_cmds = {
+				DrawCmd {
+					.ibo_view = ibo.ibo_view(0, static_cast<u32>(indices.size())),
+					.index_count_per_instance = static_cast<u32>(indices.size()),
+					.instance_count = 1,
+					.start_index_location = 0,
+				},
+			},
+			.debug_name = "GBuffer",
+		});
+		graph.graphify();
+		graph.flatten();
 	}
 
 	auto prev_time = static_cast<float>(glfwGetTime());
@@ -90,6 +112,9 @@ int main() {
 		// rendering
 		auto t0 = glfwGetTime() * 1e3;
 		{
+			const auto [output_image, cl] = d::c.BeginRendering();
+			graph.do_commands(cl);
+			d::c.EndRendering();
 		}
 		auto t1 = glfwGetTime() * 1e3;
 		glfwSetWindowTitle(window, std::format("b | Render Time: {:.2f} ms", t1 - t0).c_str());

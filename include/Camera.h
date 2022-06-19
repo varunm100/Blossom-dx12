@@ -22,7 +22,7 @@ struct Camera {
 	d::Resource<d::Buffer> buffer;
 	CameraData data;
 
-	Camera(glm::vec3 initial_pos, glm::vec3 look_at, float fov);
+	Camera(glm::vec3 initial_pos, glm::vec3 look_at, float fov, float aspect_ratio);
 	Camera(glm::vec3 initial_pos, glm::vec3 look_at, glm::vec3 up, float aspect_ratio, float fov);
 	~Camera() = default;
 

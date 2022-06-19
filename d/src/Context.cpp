@@ -103,7 +103,7 @@ namespace d {
 			ComPtr<D3D12MA::Allocation> empty_allocation;
 
 			DX_CHECK(swap_chain.swapchain->GetBuffer(i, IID_PPV_ARGS(&image)));
-			auto res = Resource<D2>(register_resource(image, empty_allocation));
+			auto res = Resource<D2>(register_resource(image, empty_allocation, ResourceState{ .type = ResourceType::D2, .access_state = D3D12_BARRIER_ACCESS_COMMON}));
 			swap_chain.images.push_back(res);
 
 			// initialize cache
@@ -136,7 +136,7 @@ namespace d {
 
 		const u32& image_index = swap_chain.image_index;
 
-		main_command_list.transition(swap_chain.images[image_index], D3D12_RESOURCE_STATE_RENDER_TARGET);
+		//main_command_list.transition(swap_chain.images[image_index], D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 		return std::make_pair(swap_chain.images[image_index], std::ref(main_command_list));
 	}
@@ -144,7 +144,7 @@ namespace d {
 	void Context::EndRendering() {
 		u32& image_index = swap_chain.image_index;
 
-		main_command_list.transition(swap_chain.images[image_index], D3D12_RESOURCE_STATE_PRESENT);
+		//main_command_list.transition(swap_chain.images[image_index], D3D12_RESOURCE_STATE_PRESENT);
 
 		main_command_list.finish();
 		general_queue.submit_lists({ main_command_list });
@@ -159,7 +159,7 @@ namespace d {
 	auto InitContext(GLFWwindow* window, u32 sc_count) -> std::pair<ResourceRegistry&, AssetLibrary&> {
 		c = d::Context();
 		c.init(window, 3);
-		return std::make_pair(c.resource_registry, c.asset_lib);
+		return std::make_pair(std::ref(c.resource_registry), std::ref(c.asset_lib));
 	}
 
 	void DescriptorStorage::init(const u32 num_desc) {

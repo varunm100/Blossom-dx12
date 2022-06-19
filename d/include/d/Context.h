@@ -38,7 +38,8 @@ namespace d {
 
 	struct ResourceState {
 		ResourceType type;
-		D3D12_BARRIER_ACCESS access_state{ D3D12_BARRIER_ACCESS_COMMON };
+		D3D12_BARRIER_ACCESS access_state { D3D12_BARRIER_ACCESS_COMMON };
+		D3D12_BARRIER_LAYOUT layout { D3D12_BARRIER_LAYOUT_COMMON };
 	};
 
 	struct ResourceRegistry {

@@ -182,7 +182,7 @@ namespace d {
 
 		operator u32() const { return static_cast<Handle>(handle); }
 
-		[[nodiscard]] auto ref(AccessType type, AccessDomain domain) -> std::pair<Handle, ResourceMetaData> {
+		[[nodiscard]] auto ref(AccessType type, AccessDomain domain) const -> std::pair<Handle, ResourceMetaData> {
 			return std::pair{
 				static_cast<Handle>(handle),
 				ResourceMetaData {
@@ -191,7 +191,7 @@ namespace d {
 				}
 			};
 		}
-		[[nodiscard]] auto ref(AccessType type) -> std::pair<Handle, ResourceMetaData> {
+		[[nodiscard]] auto ref(AccessType type) const -> std::pair<Handle, ResourceMetaData> {
 			return std::pair{
 				static_cast<Handle>(handle),
 				ResourceMetaData {
@@ -199,7 +199,7 @@ namespace d {
 				}
 			};
 		}
-		[[nodiscard]] auto ref(AccessDomain domain) -> std::pair<Handle, ResourceMetaData> {
+		[[nodiscard]] auto ref(AccessDomain domain) const -> std::pair<Handle, ResourceMetaData> {
 			return std::pair{
 				static_cast<Handle>(handle),
 				ResourceMetaData {
@@ -266,7 +266,7 @@ namespace d {
 
 		operator u32() const { return static_cast<Handle>(handle); }
 
-		[[nodiscard]] auto ref(AccessType type, AccessDomain domain) -> std::pair<Handle, ResourceMetaData> {
+		[[nodiscard]] auto ref(AccessType type, AccessDomain domain) const -> std::pair<Handle, ResourceMetaData> {
 			return std::pair{
 				static_cast<Handle>(handle),
 				ResourceMetaData {
@@ -275,7 +275,7 @@ namespace d {
 				}
 			};
 		}
-		[[nodiscard]] auto ref(AccessType type) -> std::pair<Handle, ResourceMetaData> {
+		[[nodiscard]] auto ref(AccessType type) const -> std::pair<Handle, ResourceMetaData> {
 			return std::pair{
 				static_cast<Handle>(handle),
 				ResourceMetaData {
@@ -283,7 +283,7 @@ namespace d {
 				}
 			};
 		}
-		[[nodiscard]] auto ref(AccessDomain domain) -> std::pair<Handle, ResourceMetaData> {
+		[[nodiscard]] auto ref(AccessDomain domain) const -> std::pair<Handle, ResourceMetaData> {
 			return std::pair{
 				static_cast<Handle>(handle),
 				ResourceMetaData {
